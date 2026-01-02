@@ -141,8 +141,79 @@ regionInput.addEventListener('input', () => {
 let exchangeRateData = {
     usdt: { usd: 1.0, cny: 7.2932 },
     trx: { usd: 0.0, cny: 0.0 },
-    usdToCny: 7.2932
+    usdToCny: 7.2932,
+    lastUpdate: null
 };
+
+const EXCHANGE_APIS = [
+    { name: 'exmo', url: 'https://api.exmo.com/v1/ticker', parser: parseExmoData },
+    { name: 'binance', url: 'https://api.binance.com/api/v3/ticker/price?symbol=USDTUSDT', parser: parseBinanceUSDT },
+    { name: 'coingecko', url: 'https://api.coingecko.com/api/v3/simple/price?ids=tether,tron&vs_currencies=usd,cny', parser: parseCoinGeckoData },
+    { name: 'frankfurter', url: 'https://api.frankfurter.app/latest?from=USD&to=CNY', parser: parseFrankfurterData }
+];
+
+function parseExmoData(data) {
+    try {
+        if (data.USDT_USD && data.USDT_CNY) {
+            return {
+                usdt: { usd: 1 / parseFloat(data.USDT_USD), cny: parseFloat(data.USDT_CNY) },
+                trx: { usd: parseFloat(data.TRX_USD) || 0, cny: parseFloat(data.TRX_CNY) || 0 },
+                usdToCny: parseFloat(data.USDT_CNY)
+            };
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function parseBinanceUSDT(data) {
+    try {
+        const usdtPrice = parseFloat(data.price);
+        if (usdtPrice && usdtPrice > 0) {
+            return {
+                usdt: { usd: 1.0, cny: usdtPrice },
+                trx: { usd: 0, cny: 0 },
+                usdToCny: usdtPrice
+            };
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function parseCoinGeckoData(data) {
+    try {
+        const usdt = data.tether || {};
+        const trx = data.tron || {};
+        if (usdt.usd && usdt.cny) {
+            return {
+                usdt: { usd: usdt.usd, cny: usdt.cny },
+                trx: { usd: trx.usd || 0, cny: trx.cny || 0 },
+                usdToCny: usdt.cny / usdt.usd
+            };
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function parseFrankfurterData(data) {
+    try {
+        if (data.rates && data.rates.CNY) {
+            return {
+                usdt: { usd: 1.0, cny: data.rates.CNY },
+                trx: { usd: 0, cny: 0 },
+                usdToCny: data.rates.CNY
+            };
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
 
 async function getLatestExchangeRate() {
     try {
@@ -150,38 +221,70 @@ async function getLatestExchangeRate() {
         showLoadingSpinner('trx-price');
         hideError('price-error');
         
-        const apiUrl = `http://api.xinyew.cn/api/huilv`;
-        const response = await fetch(apiUrl);
+        let lastError = null;
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        for (const api of EXCHANGE_APIS) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch(api.url, {
+                    signal: controller.signal,
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) continue;
+                
+                const data = await response.json();
+                const result = api.parser(data);
+                
+                if (result && result.usdToCny > 0 && result.usdToCny < 100) {
+                    exchangeRateData = { ...exchangeRateData, ...result, lastUpdate: new Date() };
+                    updatePriceDisplay();
+                    console.log(`汇率获取成功 (${api.name})`);
+                    return true;
+                }
+            } catch (error) {
+                lastError = error;
+                console.warn(`API ${api.name} 请求失败:`, error.message);
+                continue;
+            }
         }
         
-        const data = await response.json();
-        
-        if (data.status === 200 && data.data) {
-            if (data.data.USDT) {
-                exchangeRateData.usdt.usd = data.data.USDT.USD;
-                exchangeRateData.usdt.cny = data.data.USDT.CNY;
-                exchangeRateData.usdToCny = data.data.USDT.CNY / data.data.USDT.USD;
-            }
-            
-            if (data.data.TRX) {
-                exchangeRateData.trx.usd = data.data.TRX.USD;
-                exchangeRateData.trx.cny = data.data.TRX.CNY;
-            }
-            
-            updatePriceDisplay();
-            return true;
-        }
-        throw new Error('无法获取汇率数据');
+        throw lastError || new Error('所有API均不可用');
     } catch (error) {
         console.error('获取汇率失败:', error);
-        showErrorById('price-error', `获取汇率失败: ${error.message}`);
-        hideLoadingSpinner('usdt-price');
-        hideLoadingSpinner('trx-price');
+        showFallbackRates();
         return false;
     }
+}
+
+function showFallbackRates() {
+    const usdtPriceElement = document.getElementById('usdt-price');
+    const trxPriceElement = document.getElementById('trx-price');
+    
+    if (usdtPriceElement) {
+        usdtPriceElement.innerHTML = `
+            USD: <span class="value">$1.0000</span><br>
+            CNY: <span class="value">¥7.2932</span><br>
+            <span class="fallback-note">使用预估汇率</span>
+        `;
+    }
+    
+    if (trxPriceElement) {
+        trxPriceElement.innerHTML = `
+            USD: <span class="value">$0.2431</span><br>
+            CNY: <span class="value">¥1.7725</span><br>
+            <span class="fallback-note">使用预估汇率</span>
+        `;
+    }
+    
+    showErrorById('price-error', '实时汇率获取中，请稍后重试...');
+    setTimeout(() => {
+        getLatestExchangeRate();
+    }, 30000);
 }
 
 function hideError(elementId) {
@@ -503,3 +606,254 @@ function clearAll() {
     document.getElementById('output-text').value = '';
     document.getElementById('output-stats').innerHTML = '<span>0 行</span>';
 }
+
+const ShareUtils = {
+    siteUrl: window.location.href,
+    siteTitle: '聚合工具箱 - 实用工具集合，一站式查询服务',
+    siteDescription: '包含油价查询、汇率转换、文本处理等实用工具',
+
+    showToast(icon, message, duration = 2000) {
+        const toast = document.getElementById('shareToast');
+        const toastIcon = toast.querySelector('.toast-icon');
+        const toastText = toast.querySelector('.toast-text');
+
+        toastIcon.textContent = icon;
+        toastText.textContent = message;
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    },
+
+    async copyShareUrl() {
+        const shareText = `🔗 ${this.siteTitle}\n${this.siteDescription}\n\n${this.siteUrl}`;
+
+        try {
+            await navigator.clipboard.writeText(this.siteUrl);
+            this.showToast('✅', '网址已复制到剪贴板');
+        } catch (err) {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = this.siteUrl;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                this.showToast('✅', '网址已复制到剪贴板');
+            } catch (e) {
+                this.showToast('❌', '复制失败，请手动复制');
+            }
+        }
+    },
+
+    async generateShareImage() {
+        const activeTab = document.querySelector('.nav-tab.active').getAttribute('data-tab');
+        let title = '聚合工具箱';
+        let content = [];
+
+        switch (activeTab) {
+            case 'fuel':
+                const regionName = document.getElementById('regionName');
+                if (regionName && document.getElementById('resultContent').style.display !== 'none') {
+                    title = `${regionName.textContent} 油价查询结果`;
+                    const prices = [
+                        { label: '92号汽油', value: document.getElementById('price92').textContent },
+                        { label: '95号汽油', value: document.getElementById('price95').textContent },
+                        { label: '98号汽油', value: document.getElementById('price98').textContent },
+                        { label: '0号柴油', value: document.getElementById('price0').textContent }
+                    ];
+                    content = prices.filter(p => p.value !== '--');
+                } else {
+                    content = [{ label: '状态', value: '点击查询获取最新油价' }];
+                }
+                break;
+            case 'currency':
+                const usdtPrice = document.getElementById('usdt-price');
+                const trxPrice = document.getElementById('trx-price');
+                if (usdtPrice) {
+                    const usdtText = usdtPrice.textContent.replace(/\s+/g, ' ').trim();
+                    const trxText = trxPrice ? trxPrice.textContent.replace(/\s+/g, ' ').trim() : '';
+                    content.push({ label: 'USDT', value: usdtText });
+                    content.push({ label: 'TRX', value: trxText });
+                }
+                break;
+            case 'text':
+                const outputText = document.getElementById('output-text');
+                if (outputText && outputText.value.trim()) {
+                    const lines = outputText.value.split('\n').filter(l => l.trim());
+                    content = lines.slice(0, 5).map((line, i) => ({
+                        label: `结果 ${i + 1}`,
+                        value: line.length > 30 ? line.substring(0, 30) + '...' : line
+                    }));
+                    if (lines.length > 5) {
+                        content.push({ label: '...', value: `还有 ${lines.length - 5} 条结果` });
+                    }
+                } else {
+                    content = [{ label: '状态', value: '处理文本后生成分享' }];
+                }
+                break;
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const width = 600;
+        const padding = 40;
+        const lineHeight = 50;
+        const titleHeight = 80;
+        const footerHeight = 60;
+
+        const contentHeight = content.length * lineHeight + 20;
+        canvas.height = titleHeight + contentHeight + footerHeight + padding * 2;
+
+        const gradient = ctx.createLinearGradient(0, 0, width, canvas.height);
+        gradient.addColorStop(0, '#1a1a3e');
+        gradient.addColorStop(1, '#0d0d2b');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, canvas.height);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 32px "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(title, width / 2, padding + 40);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px "Microsoft YaHei", sans-serif';
+        ctx.fillText(`聚合工具箱 | ${new Date().toLocaleDateString('zh-CN')}`, width / 2, padding + 65);
+
+        ctx.strokeStyle = 'rgba(96, 165, 250, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(padding, padding + 85);
+        ctx.lineTo(width - padding, padding + 85);
+        ctx.stroke();
+
+        ctx.textAlign = 'left';
+        content.forEach((item, index) => {
+            const y = padding + titleHeight + 25 + index * lineHeight;
+
+            ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
+            ctx.fillRect(padding, y - 25, width - padding * 2, lineHeight - 5);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '14px "Microsoft YaHei", sans-serif';
+            ctx.fillText(item.label, padding + 15, y);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px "Microsoft YaHei", sans-serif';
+            ctx.fillText(item.value, padding + 100, y);
+        });
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '12px "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🔗 wuyingzhishang.github.io', width / 2, canvas.height - 20);
+
+        return canvas.toDataURL('image/png');
+    },
+
+    async openShareImageModal() {
+        try {
+            const imageData = await this.generateShareImage();
+            const preview = document.getElementById('shareImagePreview');
+            preview.src = imageData;
+
+            const modal = document.getElementById('shareImageModal');
+            modal.style.display = 'flex';
+        } catch (error) {
+            console.error('生成分享图失败:', error);
+            this.showToast('❌', '生成分享图失败');
+        }
+    },
+
+    async copyShareImage() {
+        const preview = document.getElementById('shareImagePreview');
+        try {
+            const response = await fetch(preview.src);
+            const blob = await response.blob();
+            await navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+            ]);
+            this.showToast('✅', '图片已复制到剪贴板');
+        } catch (error) {
+            this.showToast('❌', '复制图片失败，请尝试下载');
+        }
+    },
+
+    downloadShareImage() {
+        const preview = document.getElementById('shareImagePreview');
+        const link = document.createElement('a');
+        link.download = `分享图-${new Date().toISOString().slice(0, 10)}.png`;
+        link.href = preview.src;
+        link.click();
+        this.showToast('✅', '图片已开始下载');
+    }
+};
+
+function closeShareImageModal() {
+    const modal = document.getElementById('shareImageModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const shareSiteBtn = document.getElementById('shareSiteBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const copyShareImageBtn = document.getElementById('copyShareImageBtn');
+    const downloadShareImageBtn = document.getElementById('downloadShareImageBtn');
+    const addToHomeBtn = document.getElementById('addToHomeBtn');
+
+    if (shareSiteBtn) {
+        shareSiteBtn.addEventListener('click', () => ShareUtils.copyShareUrl());
+    }
+
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => ShareUtils.openShareImageModal());
+    }
+
+    if (copyShareImageBtn) {
+        copyShareImageBtn.addEventListener('click', () => ShareUtils.copyShareImage());
+    }
+
+    if (downloadShareImageBtn) {
+        downloadShareImageBtn.addEventListener('click', () => ShareUtils.downloadShareImage());
+    }
+
+    if (addToHomeBtn) {
+        addToHomeBtn.addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: ShareUtils.siteTitle,
+                        text: ShareUtils.siteDescription,
+                        url: ShareUtils.siteUrl
+                    });
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        ShareUtils.showToast('💡', '请使用浏览器分享功能');
+                    }
+                }
+            } else {
+                ShareUtils.showToast('💡', '浏览器不支持分享 API');
+            }
+        });
+    }
+
+    const modal = document.getElementById('shareImageModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeShareImageModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeShareImageModal();
+        }
+    });
+});
