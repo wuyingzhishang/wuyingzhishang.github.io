@@ -15,10 +15,8 @@
 
         <nav class="nav-tabs">
             <button class="nav-tab active" data-tab="fuel">⛽ 油价查询</button>
-            <button class="nav-tab" data-tab="ip">🌐 IP查询</button>
             <button class="nav-tab" data-tab="currency">💱 汇率转换</button>
             <button class="nav-tab" data-tab="text">📝 文本处理</button>
-            <button class="nav-tab" data-tab="timezone">🕐 时间转换</button>
         </nav>
 
         <div class="tab-content" id="fuelTab">
@@ -96,69 +94,6 @@
                 <div class="error-message" id="errorMessage" style="display: none;">
                     <div class="error-icon">⚠️</div>
                     <p id="errorText">查询失败，请稍后重试</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-content" id="ipTab" style="display: none;">
-            <div class="search-section">
-                <div class="search-box">
-                    <input type="text" id="ipInput" placeholder="输入IP地址（留空查询本机IP）" autocomplete="off">
-                    <button id="ipSearchBtn">查询</button>
-                </div>
-                <div class="quick-select">
-                    <span class="quick-label">快速操作：</span>
-                    <button class="quick-btn" id="getMyIp">查询本机IP</button>
-                </div>
-            </div>
-
-            <div class="result-section" id="ipResultSection" style="display: none;">
-                <div class="loading" id="ipLoading">
-                    <div class="spinner"></div>
-                    <p>正在查询IP信息...</p>
-                </div>
-
-                <div class="result-content" id="ipResultContent" style="display: none;">
-                    <div class="ip-info-grid">
-                        <div class="info-card">
-                            <div class="info-label">IP地址</div>
-                            <div class="info-value" id="ipAddress">--</div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-label">IP版本</div>
-                            <div class="info-value" id="ipVersion">--</div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-label">国家</div>
-                            <div class="info-value" id="countryName">--</div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-label">省份</div>
-                            <div class="info-value" id="regionName">--</div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-label">城市</div>
-                            <div class="info-value" id="cityName">--</div>
-                        </div>
-
-                        <div class="info-card">
-                            <div class="info-label">运营商</div>
-                            <div class="info-value" id="isp">--</div>
-                        </div>
-                    </div>
-
-                    <div class="tips">
-                        <p>💡 提示：IP位置信息仅供参考，可能存在偏差</p>
-                    </div>
-                </div>
-
-                <div class="error-message" id="ipErrorMessage" style="display: none;">
-                    <div class="error-icon">⚠️</div>
-                    <p id="ipErrorText">查询失败，请稍后重试</p>
                 </div>
             </div>
         </div>
@@ -285,67 +220,6 @@
             </div>
         </div>
 
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>                     </button>
-                            <button id="clear-btn" class="btn btn-danger">
-                                <span class="btn-icon">🗑️</span>
-                                清空
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="section output-section">
-                        <h3>处理结果</h3>
-                        <div class="output-container">
-                            <textarea id="output-text" readonly placeholder="处理结果将显示在这里..."></textarea>
-                            <div class="output-stats" id="output-stats">
-                                <span>0 行</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-content" id="timezoneTab" style="display: none;">
-            <div class="timezone-section">
-                <div class="time-card">
-                    <h3>📅 当前UTC时间</h3>
-                    <div class="live-time" id="currentUTC"></div>
-                </div>
-                
-                <div class="converter-section">
-                    <div class="input-group">
-                        <label>🕒 输入UTC时间</label>
-                        <input type="datetime-local" id="sourceTime">
-                    </div>
-                    
-                    <div class="convert-icon">↓</div>
-                    
-                    <div class="input-group">
-                        <label>🇨🇳 北京时间</label>
-                        <div class="output-display" id="beijingOutput"></div>
-                    </div>
-                </div>
-                
-                <button id="currentTimeBtn">⏱️ 使用当前UTC时间</button>
-                
-                <div class="time-card">
-                    <h3>📱 实时北京时间</h3>
-                    <div class="live-time" id="result"></div>
-                </div>
-                
-                <div class="info-note">
-                    💡 UTC (协调世界时) 转换为北京时间需要加上 8 小时<br>
-                    例如：UTC 12:00:00 = 北京时间 20:00:00
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="script.js"></script>

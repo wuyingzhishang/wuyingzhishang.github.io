@@ -1,5 +1,4 @@
 const FUEL_API_URL = 'https://api.nxvav.cn/api/fuel-price/';
-const IP_API_URL = 'https://api.nxvav.cn/api/ip/';
 
 const regionInput = document.getElementById('regionInput');
 const searchBtn = document.getElementById('searchBtn');
@@ -9,15 +8,6 @@ const loading = document.getElementById('loading');
 const resultContent = document.getElementById('resultContent');
 const errorMessage = document.getElementById('errorMessage');
 const errorText = document.getElementById('errorText');
-
-const ipInput = document.getElementById('ipInput');
-const ipSearchBtn = document.getElementById('ipSearchBtn');
-const getMyIpBtn = document.getElementById('getMyIp');
-const ipResultSection = document.getElementById('ipResultSection');
-const ipLoading = document.getElementById('ipLoading');
-const ipResultContent = document.getElementById('ipResultContent');
-const ipErrorMessage = document.getElementById('ipErrorMessage');
-const ipErrorText = document.getElementById('ipErrorText');
 
 const navTabs = document.querySelectorAll('.nav-tab');
 const tabContents = document.querySelectorAll('.tab-content');
@@ -147,90 +137,6 @@ regionInput.addEventListener('input', () => {
     }
 });
 
-async function fetchIpInfo(ip = '') {
-    showIpLoading();
-
-    try {
-        const url = ip ? `${IP_API_URL}?ip=${encodeURIComponent(ip)}&format=json` : `${IP_API_URL}?format=json`;
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error('网络请求失败');
-        }
-
-        const data = await response.json();
-        
-        if (data && data.code === 200) {
-            displayIpResult(data);
-        } else {
-            showIpError('查询失败，请检查IP地址是否正确');
-        }
-    } catch (error) {
-        console.error('API请求错误:', error);
-        showIpError('查询失败，请稍后重试');
-    }
-}
-
-function showIpLoading() {
-    ipResultSection.style.display = 'block';
-    ipLoading.style.display = 'block';
-    ipResultContent.style.display = 'none';
-    ipErrorMessage.style.display = 'none';
-}
-
-function displayIpResult(data) {
-    ipLoading.style.display = 'none';
-    ipResultContent.style.display = 'block';
-    ipErrorMessage.style.display = 'none';
-
-    const ipAddress = document.getElementById('ipAddress');
-    const ipVersion = document.getElementById('ipVersion');
-    const countryName = document.getElementById('countryName');
-    const regionName = document.getElementById('regionName');
-    const cityName = document.getElementById('cityName');
-    const isp = document.getElementById('isp');
-
-    if (data.data) {
-        ipAddress.textContent = data.data.ip || '--';
-        ipVersion.textContent = data.data.ipVersion || '--';
-        countryName.textContent = data.data.countryName || '--';
-        regionName.textContent = data.data.regionName || '--';
-        cityName.textContent = data.data.cityName || '--';
-        isp.textContent = data.data.internetServiceProvider || '--';
-    } else {
-        showIpError('数据格式错误');
-    }
-}
-
-function showIpError(message) {
-    ipLoading.style.display = 'none';
-    ipResultContent.style.display = 'none';
-    ipErrorMessage.style.display = 'block';
-    ipErrorText.textContent = message;
-}
-
-ipSearchBtn.addEventListener('click', () => {
-    const ip = ipInput.value.trim();
-    fetchIpInfo(ip);
-});
-
-ipInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const ip = ipInput.value.trim();
-        fetchIpInfo(ip);
-    }
-});
-
-getMyIpBtn.addEventListener('click', () => {
-    ipInput.value = '';
-    fetchIpInfo();
-});
-
-ipInput.addEventListener('input', () => {
-    if (ipResultSection.style.display === 'block') {
-        ipResultSection.style.display = 'none';
-    }
-});
 
 let exchangeRateData = {
     usdt: { usd: 1.0, cny: 7.2932 },
@@ -421,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     initTextProcessor();
-    initTimezoneConverter();
 });
 
 function initTextProcessor() {
