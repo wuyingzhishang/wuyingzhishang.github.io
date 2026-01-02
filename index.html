@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聚合工具箱</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">聚合工具箱</h1>
+            <p class="subtitle">实用工具集合，一站式查询服务</p>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="fuel">⛽ 油价查询</button>
+            <button class="nav-tab" data-tab="ip">🌐 IP查询</button>
+            <button class="nav-tab" data-tab="currency">💱 汇率转换</button>
+            <button class="nav-tab" data-tab="text">📝 文本处理</button>
+            <button class="nav-tab" data-tab="timezone">🕐 时间转换</button>
+        </nav>
+
+        <div class="tab-content" id="fuelTab">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="regionInput" placeholder="输入地区名称（如：上海、北京、广州）" autocomplete="off">
+                    <button id="searchBtn">查询</button>
+                </div>
+                <div class="quick-select">
+                    <span class="quick-label">热门地区：</span>
+                    <button class="quick-btn" data-region="北京">北京</button>
+                    <button class="quick-btn" data-region="上海">上海</button>
+                    <button class="quick-btn" data-region="广州">广州</button>
+                    <button class="quick-btn" data-region="深圳">深圳</button>
+                    <button class="quick-btn" data-region="杭州">杭州</button>
+                    <button class="quick-btn" data-region="成都">成都</button>
+                </div>
+            </div>
+
+            <div class="result-section" id="resultSection" style="display: none;">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>正在查询油价信息...</p>
+                </div>
+
+                <div class="result-content" id="resultContent" style="display: none;">
+                    <div class="region-info">
+                        <h2 id="regionName">地区名称</h2>
+                        <p class="update-time" id="updateTime">更新时间</p>
+                    </div>
+
+                    <div class="price-grid">
+                        <div class="price-card type-92">
+                            <div class="card-header">
+                                <span class="fuel-type">92号汽油</span>
+                                <span class="fuel-icon">⛽</span>
+                            </div>
+                            <div class="price-value" id="price92">--</div>
+                            <div class="price-unit">元/升</div>
+                        </div>
+
+                        <div class="price-card type-95">
+                            <div class="card-header">
+                                <span class="fuel-type">95号汽油</span>
+                                <span class="fuel-icon">⛽</span>
+                            </div>
+                            <div class="price-value" id="price95">--</div>
+                            <div class="price-unit">元/升</div>
+                        </div>
+
+                        <div class="price-card type-98">
+                            <div class="card-header">
+                                <span class="fuel-type">98号汽油</span>
+                                <span class="fuel-icon">⛽</span>
+                            </div>
+                            <div class="price-value" id="price98">--</div>
+                            <div class="price-unit">元/升</div>
+                        </div>
+
+                        <div class="price-card type-diesel">
+                            <div class="card-header">
+                                <span class="fuel-type">0号柴油</span>
+                                <span class="fuel-icon">🛢️</span>
+                            </div>
+                            <div class="price-value" id="price0">--</div>
+                            <div class="price-unit">元/升</div>
+                        </div>
+                    </div>
+
+                    <div class="tips">
+                        <p>💡 提示：油价信息仅供参考，实际价格以加油站为准</p>
+                    </div>
+                </div>
+
+                <div class="error-message" id="errorMessage" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <p id="errorText">查询失败，请稍后重试</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="ipTab" style="display: none;">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="ipInput" placeholder="输入IP地址（留空查询本机IP）" autocomplete="off">
+                    <button id="ipSearchBtn">查询</button>
+                </div>
+                <div class="quick-select">
+                    <span class="quick-label">快速操作：</span>
+                    <button class="quick-btn" id="getMyIp">查询本机IP</button>
+                </div>
+            </div>
+
+            <div class="result-section" id="ipResultSection" style="display: none;">
+                <div class="loading" id="ipLoading">
+                    <div class="spinner"></div>
+                    <p>正在查询IP信息...</p>
+                </div>
+
+                <div class="result-content" id="ipResultContent" style="display: none;">
+                    <div class="ip-info-grid">
+                        <div class="info-card">
+                            <div class="info-label">IP地址</div>
+                            <div class="info-value" id="ipAddress">--</div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-label">IP版本</div>
+                            <div class="info-value" id="ipVersion">--</div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-label">国家</div>
+                            <div class="info-value" id="countryName">--</div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-label">省份</div>
+                            <div class="info-value" id="regionName">--</div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-label">城市</div>
+                            <div class="info-value" id="cityName">--</div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-label">运营商</div>
+                            <div class="info-value" id="isp">--</div>
+                        </div>
+                    </div>
+
+                    <div class="tips">
+                        <p>💡 提示：IP位置信息仅供参考，可能存在偏差</p>
+                    </div>
+                </div>
+
+                <div class="error-message" id="ipErrorMessage" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <p id="ipErrorText">查询失败，请稍后重试</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="currencyTab" style="display: none;">
+            <div class="currency-section">
+                <div class="price-section">
+                    <div class="price-title">实时加密货币价格</div>
+                    <div class="price-cards">
+                        <div class="price-card">
+                            <div class="currency">USDT</div>
+                            <div class="price" id="usdt-price">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                        <div class="price-card">
+                            <div class="currency">TRX</div>
+                            <div class="price" id="trx-price">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="price-error" class="error-message" style="display: none;"></div>
+                </div>
+
+                <div class="international-section">
+                    <div class="international-title">国际金额快速转换</div>
+                    <div class="input-group">
+                        <input type="number" id="amount" placeholder="输入金额">
+                        <select id="unit">
+                            <option value="k" selected>K</option>
+                            <option value="m">M</option>
+                            <option value="b">B</option>
+                        </select>
+                    </div>
+                    <div class="results-display">
+                        <div class="result-card">
+                            <div class="result-card-title">基础转换</div>
+                            <div class="result-content" id="left-result">
+                                <div class="loading-spinner" style="margin: 10px auto;"></div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-card-title">带单位转换</div>
+                            <div class="result-content" id="right-result">
+                                <div class="loading-spinner" style="margin: 10px auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="international-error" class="error-message" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="textTab" style="display: none;">
+            <div class="text-processor-section">
+                <div class="card">
+                    <div class="section format-section">
+                        <h3>格式设置</h3>
+                        <div class="format-grid">
+                            <div class="input-group">
+                                <label for="source-format">源文本格式</label>
+                                <input type="text" id="source-format" value="{1}----{2}----{3}----{4}" placeholder="例如: {1}----{2}----{3}----{4}">
+                            </div>
+                            <div class="input-group">
+                                <label for="target-format">目标格式</label>
+                                <input type="text" id="target-format" value="{2}----{3}" placeholder="例如: {2}----{3}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section input-section">
+                        <h3>输入文本</h3>
+                        <textarea id="input-text" placeholder="请输入要处理的文本，每行一个"></textarea>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section control-section">
+                        <div class="control-row">
+                            <div class="toggle-group">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="suffix-enabled" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-text">添加后缀</span>
+                                </label>
+                            </div>
+                            <div class="number-control" id="suffix-input-group">
+                                <label for="suffix-number">后缀数字</label>
+                                <input type="number" id="suffix-number" value="20" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button id="process-btn" class="btn btn-primary">
+                                <span class="btn-icon">⚡</span>
+                                处理文本
+                            </button>
+                            <button id="copy-btn" class="btn btn-secondary">
+                                <span class="btn-icon">📋</span>
+                                复制结果
+                            </button>
+                            <button id="clear-btn" class="btn btn-danger">
+                                <span class="btn-icon">🗑️</span>
+                                清空
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section output-section">
+                        <h3>处理结果</h3>
+                        <div class="output-container">
+                            <textarea id="output-text" readonly placeholder="处理结果将显示在这里..."></textarea>
+                            <div class="output-stats" id="output-stats">
+                                <span>0 行</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="timezoneTab" style="display: none;">
+            <div class="timezone-section">
+                <div class="time-card">
+                    <h3>📅 当前UTC时间</h3>
+                    <div class="live-time" id="currentUTC"></div>
+                </div>
+                
+                <div class="converter-section">
+                    <div class="input-group">
+                        <label>🕒 输入UTC时间</label>
+                        <input type="datetime-local" id="sourceTime">
+                    </div>
+                    
+                    <div class="convert-icon">↓</div>
+                    
+                    <div class="input-group">
+                        <label>🇨🇳 北京时间</label>
+                        <div class="output-display" id="beijingOutput"></div>
+                    </div>
+                </div>
+                
+                <button id="currentTimeBtn">⏱️ 使用当前UTC时间</button>
+                
+                <div class="time-card">
+                    <h3>📱 实时北京时间</h3>
+                    <div class="live-time" id="result"></div>
+                </div>
+                
+                <div class="info-note">
+                    💡 UTC (协调世界时) 转换为北京时间需要加上 8 小时<br>
+                    例如：UTC 12:00:00 = 北京时间 20:00:00
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
