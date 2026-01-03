@@ -1,4 +1,5 @@
 const FUEL_API_URL = 'https://api.nxvav.cn/api/fuel-price/';
+const DOUYIN_API_URL = 'https://api.aa1.cn/api/douyin-hot/';
 
 const regionInput = document.getElementById('regionInput');
 const searchBtn = document.getElementById('searchBtn');
@@ -856,4 +857,87 @@ document.addEventListener('DOMContentLoaded', function() {
             closeShareImageModal();
         }
     });
+});
+
+// 抖音热点功能
+async function fetchDouyinHot() {
+    const douyinLoading = document.getElementById('douyinLoading');
+    const douyinContent = document.getElementById('douyinContent');
+    const douyinError = document.getElementById('douyinError');
+    const douyinErrorText = document.getElementById('douyinErrorText');
+    const douyinList = document.getElementById('douyinList');
+
+    douyinLoading.style.display = 'block';
+    douyinContent.style.display = 'none';
+    douyinError.style.display = 'none';
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(DOUYIN_API_URL, {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json' }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error('网络请求失败');
+        }
+
+        const data = await response.json();
+
+        if (data && data.data && Array.isArray(data.data)) {
+            displayDouyinHot(data.data);
+        } else {
+            throw new Error('数据格式错误');
+        }
+    } catch (error) {
+        console.error('获取抖音热点失败:', error);
+        douyinLoading.style.display = 'none';
+        douyinError.style.display = 'block';
+        douyinErrorText.textContent = error.message === '数据格式错误' ? '数据格式错误，请稍后重试' : '加载失败，请稍后重试';
+    }
+}
+
+function displayDouyinHot(hotList) {
+    const douyinLoading = document.getElementById('douyinLoading');
+    const douyinContent = document.getElementById('douyinContent');
+    const douyinList = document.getElementById('douyinList');
+
+    douyinLoading.style.display = 'none';
+    douyinContent.style.display = 'block';
+
+    douyinList.innerHTML = hotList.map((item, index) => {
+        const rank = index + 1;
+        const isTop3 = rank <= 3;
+        const hotValue = item.hot || item.hot_value || item.heat || '热度未知';
+        const title = item.title || item.word || item.name || '未知标题';
+
+        return `
+            <div class="douyin-item ${isTop3 ? 'douyin-item-top3' : ''}" data-index="${rank}">
+                <div class="douyin-content-main">
+                    <div class="douyin-title-text">${title}</div>
+                    <div class="douyin-hot">
+                        <span class="douyin-hot-icon">🔥</span>
+                        <span>热度: ${hotValue}</span>
+                    </div>
+                </div>
+                <div class="douyin-rank ${rank === 1 ? 'douyin-rank-1' : ''}">${rank}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 初始化抖音热点
+document.addEventListener('DOMContentLoaded', function() {
+    fetchDouyinHot();
+
+    const refreshDouyinBtn = document.getElementById('refreshDouyinBtn');
+    if (refreshDouyinBtn) {
+        refreshDouyinBtn.addEventListener('click', () => {
+            fetchDouyinHot();
+        });
+    }
 });

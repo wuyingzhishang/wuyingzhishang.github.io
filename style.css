@@ -729,6 +729,57 @@ body::before {
     #errorText {
         font-size: 1rem;
     }
+
+    /* 抖音热点移动端优化 */
+    .douyin-section {
+        padding: 20px 15px;
+    }
+
+    .douyin-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .douyin-title h2 {
+        font-size: 1.6rem;
+    }
+
+    .douyin-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .refresh-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+    }
+
+    .douyin-item {
+        padding: 15px;
+    }
+
+    .douyin-title-text {
+        font-size: 1rem;
+        padding-right: 50px;
+    }
+
+    .douyin-rank {
+        font-size: 2rem;
+        right: 15px;
+    }
+
+    .douyin-rank-1 {
+        font-size: 2.5rem;
+    }
+
+    .douyin-content-main {
+        padding-right: 50px;
+    }
+
+    .douyin-hot {
+        font-size: 0.8rem;
+    }
 }
 
 /* 超小屏幕优化（小于 375px） */
@@ -1302,6 +1353,175 @@ body::before {
     background: rgba(59, 130, 246, 0.2);
     border: 2px solid rgba(96, 165, 250, 0.3);
     color: #60a5fa;
+}
+
+/* 抖音热点样式 */
+.douyin-section {
+    background: rgba(30, 30, 60, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.douyin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(96, 165, 250, 0.2);
+}
+
+.douyin-title h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f472b6 0%, #fb7185 50%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 5px;
+}
+
+.douyin-subtitle {
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+.refresh-btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #f472b6 0%, #fb7185 100%);
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(244, 114, 182, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 114, 182, 0.6);
+}
+
+.refresh-icon {
+    font-size: 1.2rem;
+}
+
+.douyin-loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.douyin-content {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.douyin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.douyin-item {
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.douyin-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #f472b6, #fb7185);
+}
+
+.douyin-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.douyin-item-top3::before {
+    background: linear-gradient(180deg, #fbbf24, #f59e0b);
+    width: 6px;
+}
+
+.douyin-item-top3 {
+    background: rgba(251, 191, 36, 0.1);
+}
+
+.douyin-rank {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.3;
+}
+
+.douyin-item-top3 .douyin-rank {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.5;
+}
+
+.douyin-rank-1 {
+    font-size: 3rem;
+}
+
+.douyin-content-main {
+    padding-right: 60px;
+}
+
+.douyin-title-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.douyin-hot {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #f472b6;
+    font-weight: 500;
+}
+
+.douyin-hot-icon {
+    font-size: 1rem;
+}
+
+.douyin-item-top3 .douyin-title-text {
+    color: #fbbf24;
+}
+
+.douyin-item-top3 .douyin-hot {
+    color: #f59e0b;
 }
 
 .share-btn.secondary:hover {

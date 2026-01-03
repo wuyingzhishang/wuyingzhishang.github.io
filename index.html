@@ -17,12 +17,42 @@
         </div>
 
         <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="fuel">⛽ 油价查询</button>
+            <button class="nav-tab active" data-tab="douyin">🔥 抖音热点</button>
+            <button class="nav-tab" data-tab="fuel">⛽ 油价查询</button>
             <button class="nav-tab" data-tab="currency">💱 汇率转换</button>
             <button class="nav-tab" data-tab="text">📝 文本处理</button>
         </nav>
 
-        <div class="tab-content" id="fuelTab">
+        <div class="tab-content" id="douyinTab">
+            <div class="douyin-section">
+                <div class="douyin-header">
+                    <div class="douyin-title">
+                        <h2>🔥 抖音热榜</h2>
+                        <p class="douyin-subtitle">实时热点，一网打尽</p>
+                    </div>
+                    <button id="refreshDouyinBtn" class="refresh-btn">
+                        <span class="refresh-icon">🔄</span>
+                        刷新热榜
+                    </button>
+                </div>
+
+                <div class="douyin-loading" id="douyinLoading">
+                    <div class="spinner"></div>
+                    <p>正在加载抖音热点...</p>
+                </div>
+
+                <div class="douyin-content" id="douyinContent" style="display: none;">
+                    <div class="douyin-list" id="douyinList"></div>
+                </div>
+
+                <div class="error-message" id="douyinError" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <p id="douyinErrorText">加载失败，请稍后重试</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="fuelTab" style="display: none;">
             <div class="search-section">
                 <div class="search-box">
                     <input type="text" id="regionInput" placeholder="输入地区名称（如：上海、北京、广州）" autocomplete="off">
