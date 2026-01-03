@@ -2,6 +2,19 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* 移动端关闭平滑滚动以提升性能 */
+@media (max-width: 768px) {
+    html {
+        scroll-behavior: auto;
+    }
 }
 
 body {
@@ -11,6 +24,10 @@ body {
     color: #ffffff;
     position: relative;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 body::before {
@@ -121,13 +138,23 @@ body::before {
 #regionInput {
     flex: 1;
     padding: 15px 20px;
-    font-size: 1rem;
+    font-size: 16px;
     background: rgba(15, 15, 35, 0.8);
     border: 2px solid rgba(96, 165, 250, 0.3);
     border-radius: 12px;
     color: #ffffff;
     outline: none;
     transition: all 0.3s ease;
+}
+
+/* 移动端输入框字体优化，防止iOS自动缩放 */
+@media (max-width: 768px) {
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
 }
 
 #regionInput::placeholder {
@@ -150,6 +177,7 @@ body::before {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    user-select: none;
 }
 
 #searchBtn:hover {
@@ -159,6 +187,31 @@ body::before {
 
 #searchBtn:active {
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+/* 移动端触摸反馈 */
+@media (hover: none) and (pointer: coarse) {
+    #searchBtn:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .nav-tab:active {
+        transform: scale(0.98);
+    }
+
+    .quick-btn:active {
+        transform: scale(0.95);
+    }
+
+    .btn:active {
+        transform: scale(0.98);
+    }
+
+    .social-link:active {
+        transform: scale(0.95);
+    }
 }
 
 .quick-select {
@@ -397,21 +450,390 @@ body::before {
     }
 }
 
+/* ==================== 移动端优化样式 ==================== */
 @media (max-width: 768px) {
-    .title {
-        font-size: 2rem;
+    /* 容器优化 */
+    .container {
+        padding: 20px 15px;
     }
-    
+
+    /* 头部优化 */
+    .title {
+        font-size: 1.8rem;
+        letter-spacing: 1px;
+    }
+
+    .subtitle {
+        font-size: 0.95rem;
+    }
+
+    .header {
+        margin-bottom: 30px;
+    }
+
+    /* 导航标签优化 - 增大触摸区域 */
+    .nav-tabs {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .nav-tab {
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    /* 搜索区域优化 */
+    .search-section {
+        padding: 20px 15px;
+    }
+
     .search-box {
         flex-direction: column;
+        gap: 12px;
     }
-    
-    .price-grid {
-        grid-template-columns: 1fr;
+
+    #regionInput {
+        padding: 14px 16px;
+        font-size: 1rem;
     }
-    
+
+    #searchBtn {
+        padding: 14px 30px;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    /* 快速选择按钮优化 */
     .quick-select {
         justify-content: center;
+        gap: 8px;
+    }
+
+    .quick-label {
+        display: none; /* 移动端隐藏标签，节省空间 */
+    }
+
+    .quick-btn {
+        padding: 10px 18px;
+        font-size: 0.95rem;
+    }
+
+    /* 价格卡片网格优化 */
+    .price-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .price-card {
+        padding: 20px;
+    }
+
+    .price-value {
+        font-size: 2.2rem;
+    }
+
+    /* 地区信息优化 */
+    #regionName {
+        font-size: 1.6rem;
+    }
+
+    .region-info {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* 加载状态优化 */
+    .loading {
+        padding: 40px 20px;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* 提示信息优化 */
+    .tips {
+        padding: 15px;
+    }
+
+    .tips p {
+        font-size: 0.9rem;
+    }
+
+    /* 货币转换区域优化 */
+    .currency-section {
+        padding: 20px 15px;
+    }
+
+    .currency-section .price-section,
+    .currency-section .international-section {
+        padding: 15px;
+    }
+
+    .currency-section .price-cards {
+        flex-direction: column;
+    }
+
+    .currency-section .input-group {
+        flex-direction: column;
+    }
+
+    .currency-section .input-group input,
+    .currency-section .input-group select {
+        width: 100%;
+    }
+
+    .currency-section .results-display {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .currency-section .result-card {
+        padding: 15px;
+    }
+
+    /* 文本处理工具优化 */
+    .text-processor-section {
+        padding: 20px 15px;
+    }
+
+    .text-processor-section .card {
+        padding: 18px 15px;
+    }
+
+    .text-processor-section .section h3 {
+        font-size: 1.1rem;
+    }
+
+    .text-processor-section .format-grid {
+        gap: 15px;
+    }
+
+    .text-processor-section .input-group input,
+    .text-processor-section .input-group textarea {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    .text-processor-section .control-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .text-processor-section .number-control {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .text-processor-section .number-control input {
+        width: 100px;
+    }
+
+    .text-processor-section .button-group {
+        flex-direction: column;
+    }
+
+    .text-processor-section .btn {
+        width: 100%;
+    }
+
+    .text-processor-section .output-container textarea {
+        min-height: 150px;
+    }
+
+    /* 社交栏优化 */
+    .social-bar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px 15px;
+    }
+
+    .social-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .share-center {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .share-btn {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Toast 通知优化 */
+    .toast {
+        bottom: 20px;
+        left: 15px;
+        right: 15px;
+        transform: translateY(100px);
+        padding: 15px 20px;
+    }
+
+    .toast.show {
+        transform: translateY(0);
+    }
+
+    /* 模态框优化 */
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+        max-height: 85vh;
+    }
+
+    .share-modal-content {
+        max-width: 95%;
+    }
+
+    .modal-header {
+        padding: 15px;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    .share-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .share-actions .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+    }
+
+    /* 错误消息优化 */
+    .error-message {
+        padding: 40px 20px;
+    }
+
+    .error-icon {
+        font-size: 3rem;
+    }
+
+    #errorText {
+        font-size: 1rem;
+    }
+}
+
+/* 超小屏幕优化（小于 375px） */
+@media (max-width: 374px) {
+    .title {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+    }
+
+    .nav-tab {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+
+    .price-value {
+        font-size: 2rem;
+    }
+
+    .text-processor-section .btn {
+        font-size: 0.9rem;
+        padding: 12px 16px;
+    }
+}
+
+/* 横屏模式优化 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .container {
+        padding: 15px;
+    }
+
+    .header {
+        margin-bottom: 20px;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+    }
+
+    .nav-tabs {
+        flex-direction: row;
+        margin-bottom: 15px;
+    }
+
+    .nav-tab {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    .search-section,
+    .currency-section,
+    .text-processor-section {
+        padding: 15px;
+    }
+
+    .price-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .price-card {
+        padding: 15px;
+    }
+
+    .price-value {
+        font-size: 1.8rem;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+    }
+}
+
+/* 优化移动端滚动性能 */
+@media (max-width: 768px) {
+    .container {
+        will-change: transform;
+    }
+
+    .price-card,
+    .currency-section .price-card,
+    .text-processor-section .card {
+        will-change: transform;
+    }
+
+    /* 优化GPU加速 */
+    .nav-tab,
+    #searchBtn,
+    .quick-btn,
+    .btn {
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
+}
+
+/* 深色模式下的进一步优化 */
+@media (prefers-color-scheme: dark) {
+    body {
+        -webkit-font-smoothing: antialiased;
     }
 }
 
@@ -1075,43 +1497,6 @@ body::before {
     to {
         opacity: 1;
         transform: scale(1);
-    }
-}
-
-@media (max-width: 768px) {
-    .social-bar {
-        flex-direction: column;
-        gap: 15px;
-        padding: 20px;
-    }
-
-    .social-actions {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .share-center {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .share-btn {
-        padding: 10px 16px;
-        font-size: 0.9rem;
-    }
-
-    .modal-content {
-        width: 95%;
-        margin: 20px;
-    }
-
-    .share-actions {
-        flex-direction: column;
-    }
-
-    .share-actions .btn {
-        width: 100%;
-        justify-content: center;
     }
 }
 
