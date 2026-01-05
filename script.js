@@ -1,5 +1,4 @@
 const FUEL_API_URL = 'https://api.nxvav.cn/api/fuel-price/';
-const DOUYIN_API_URL = 'https://api.aa1.cn/api/douyin-hot/';
 
 const regionInput = document.getElementById('regionInput');
 const searchBtn = document.getElementById('searchBtn');
@@ -436,9 +435,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function initTextProcessor() {
     const processBtn = document.getElementById('process-btn');
     const copyBtn = document.getElementById('copy-btn');
-    const clearBtn = document.getElementById('clear-btn');
+    const copyOutputBtn = document.getElementById('copy-output-btn');
+    const clearInputBtn = document.getElementById('clear-input-btn');
     const suffixCheckbox = document.getElementById('suffix-enabled');
     const suffixInputGroup = document.getElementById('suffix-input-group');
+    const inputText = document.getElementById('input-text');
+    const sourceFormat = document.getElementById('source-format');
     
     if (processBtn) {
         processBtn.addEventListener('click', processText);
@@ -448,8 +450,12 @@ function initTextProcessor() {
         copyBtn.addEventListener('click', copyResult);
     }
     
-    if (clearBtn) {
-        clearBtn.addEventListener('click', clearAll);
+    if (copyOutputBtn) {
+        copyOutputBtn.addEventListener('click', copyResult);
+    }
+    
+    if (clearInputBtn) {
+        clearInputBtn.addEventListener('click', clearInput);
     }
     
     if (suffixCheckbox && suffixInputGroup) {
@@ -463,6 +469,74 @@ function initTextProcessor() {
             }
         });
     }
+    
+    if (inputText) {
+        inputText.addEventListener('input', () => {
+            autoDetectSeparator();
+            updateLineCount();
+        });
+    }
+}
+
+function updateLineCount() {
+    const inputText = document.getElementById('input-text');
+    const lineCount = document.getElementById('input-line-count');
+    
+    if (inputText && lineCount) {
+        const lines = inputText.value.split('\n').filter(line => line.trim()).length;
+        lineCount.textContent = `${lines} 行`;
+    }
+}
+
+function clearInput() {
+    const inputText = document.getElementById('input-text');
+    const outputText = document.getElementById('output-text');
+    const outputBadge = document.getElementById('output-badge');
+    const outputHint = document.getElementById('output-hint');
+    
+    if (inputText) {
+        inputText.value = '';
+    }
+    
+    if (outputText) {
+        outputText.value = '';
+    }
+    
+    if (outputBadge) {
+        outputBadge.textContent = '0 行';
+    }
+    
+    if (outputHint) {
+        outputHint.textContent = '等待处理...';
+    }
+    
+    updateLineCount();
+}
+
+function autoDetectSeparator() {
+    const inputText = document.getElementById('input-text');
+    const sourceFormat = document.getElementById('source-format');
+    const targetFormat = document.getElementById('target-format');
+    const text = inputText.value.trim();
+    
+    if (!text) {
+        return;
+    }
+    
+    const firstLine = text.split('\n')[0];
+    const parts = firstLine.split('----');
+    
+    if (parts.length >= 2) {
+        let format = '';
+        for (let i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                format += '----';
+            }
+            format += `{${i + 1}}`;
+        }
+        sourceFormat.value = format;
+        targetFormat.value = '{1}----{2}';
+    }
 }
 
 function processText() {
@@ -472,7 +546,8 @@ function processText() {
     const suffixEnabled = document.getElementById('suffix-enabled').checked;
     const suffixNumber = parseInt(document.getElementById('suffix-number').value) || 20;
     const outputText = document.getElementById('output-text');
-    const outputStats = document.getElementById('output-stats');
+    const outputBadge = document.getElementById('output-badge');
+    const outputHint = document.getElementById('output-hint');
     
     if (!inputText.trim()) {
         alert('请输入要处理的文本');
@@ -494,7 +569,18 @@ function processText() {
     });
     
     outputText.value = results.join('\n');
-    outputStats.innerHTML = `<span>${results.length} 行</span>`;
+    
+    if (outputBadge) {
+        outputBadge.textContent = `${results.length} 行`;
+    }
+    
+    if (outputHint) {
+        if (results.length > 0) {
+            outputHint.textContent = `成功处理 ${results.length} 条数据`;
+        } else {
+            outputHint.textContent = '未生成结果';
+        }
+    }
 }
 
 function transformLine(line, sourceFormat, targetFormat) {
@@ -504,84 +590,37 @@ function transformLine(line, sourceFormat, targetFormat) {
     return replacePlaceholders(targetFormat, sourceParts);
 }
 
+function parseFormat(format) {
+    const placeholders = {};
+    const parts = format.split('----');
+    parts.forEach((part, index) => {
+        const match = part.match(/\{(\d+)\}/);
+        if (match) {
+            placeholders[match[1]] = index;
+        }
+    });
+    return placeholders;
+}
+
 function extractParts(line, format) {
-    const parts = {};
-    let currentIndex = 0;
-    let placeholderIndex = 0;
+    const sourcePlaceholders = parseFormat(format);
+    const parts = line.split('----');
+    const values = {};
     
-    const regex = /\{(\d+)\}/g;
-    let match;
-    let lastIndex = 0;
-    const extractedParts = [];
-    
-    while ((match = regex.exec(format)) !== null) {
-        const placeholderNumber = parseInt(match[1]);
-        const separator = format.substring(lastIndex, match.index);
-        
-        if (separator && currentIndex < line.length) {
-            const separatorIndex = line.indexOf(separator, currentIndex);
-            if (separatorIndex === -1) {
-                return null;
-            }
-            currentIndex = separatorIndex + separator.length;
+    Object.entries(sourcePlaceholders).forEach(([key, index]) => {
+        if (parts[index]) {
+            values[key] = parts[index].trim();
         }
-        
-        if (placeholderIndex < extractedParts.length) {
-            parts[placeholderNumber] = extractedParts[placeholderIndex];
-        }
-        
-        lastIndex = regex.lastIndex;
-        placeholderIndex++;
-    }
+    });
     
-    if (placeholderIndex === 0) {
-        return null;
-    }
-    
-    const remainingFormat = format.substring(lastIndex);
-    if (remainingFormat && currentIndex < line.length) {
-        const remainingIndex = line.indexOf(remainingFormat, currentIndex);
-        if (remainingIndex === -1) {
-            return null;
-        }
-        currentIndex = remainingIndex + remainingFormat.length;
-    }
-    
-    let tempIndex = 0;
-    let tempPlaceholderIndex = 0;
-    regex.lastIndex = 0;
-    
-    while ((match = regex.exec(format)) !== null) {
-        const separator = format.substring(tempIndex, match.index);
-        
-        if (separator) {
-            const separatorIndex = line.indexOf(separator, tempIndex);
-            if (separatorIndex === -1) {
-                return null;
-            }
-            extractedParts[tempPlaceholderIndex] = line.substring(tempIndex, separatorIndex);
-            tempIndex = separatorIndex + separator.length;
-        }
-        
-        tempIndex = match.index + match[0].length;
-        tempPlaceholderIndex++;
-    }
-    
-    if (tempIndex < line.length) {
-        extractedParts[tempPlaceholderIndex] = line.substring(tempIndex);
-    }
-    
-    for (let i = 0; i < extractedParts.length; i++) {
-        parts[i + 1] = extractedParts[i];
-    }
-    
-    return parts;
+    return values;
 }
 
 function replacePlaceholders(format, parts) {
-    return format.replace(/\{(\d+)\}/g, (match, number) => {
-        return parts[number] || '';
-    });
+    return format.split('----').map(part => {
+        const match = part.match(/\{(\d+)\}/);
+        return match ? parts[match[1]] || '' : part;
+    }).join('----');
 }
 
 function copyResult() {
@@ -602,16 +641,10 @@ function copyResult() {
     }, 2000);
 }
 
-function clearAll() {
-    document.getElementById('input-text').value = '';
-    document.getElementById('output-text').value = '';
-    document.getElementById('output-stats').innerHTML = '<span>0 行</span>';
-}
-
 const ShareUtils = {
     siteUrl: window.location.href,
-    siteTitle: '聚合工具箱 - 实用工具集合，一站式查询服务',
-    siteDescription: '包含油价查询、汇率转换、文本处理等实用工具',
+    siteTitle: '聚合工具箱 - 实用工具集合',
+    siteDescription: '油价查询 · 汇率转换 · 文本处理',
 
     showToast(icon, message, duration = 2000) {
         const toast = document.getElementById('shareToast');
@@ -857,87 +890,4 @@ document.addEventListener('DOMContentLoaded', function() {
             closeShareImageModal();
         }
     });
-});
-
-// 抖音热点功能
-async function fetchDouyinHot() {
-    const douyinLoading = document.getElementById('douyinLoading');
-    const douyinContent = document.getElementById('douyinContent');
-    const douyinError = document.getElementById('douyinError');
-    const douyinErrorText = document.getElementById('douyinErrorText');
-    const douyinList = document.getElementById('douyinList');
-
-    douyinLoading.style.display = 'block';
-    douyinContent.style.display = 'none';
-    douyinError.style.display = 'none';
-
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-        const response = await fetch(DOUYIN_API_URL, {
-            signal: controller.signal,
-            headers: { 'Accept': 'application/json' }
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            throw new Error('网络请求失败');
-        }
-
-        const data = await response.json();
-
-        if (data && data.data && Array.isArray(data.data)) {
-            displayDouyinHot(data.data);
-        } else {
-            throw new Error('数据格式错误');
-        }
-    } catch (error) {
-        console.error('获取抖音热点失败:', error);
-        douyinLoading.style.display = 'none';
-        douyinError.style.display = 'block';
-        douyinErrorText.textContent = error.message === '数据格式错误' ? '数据格式错误，请稍后重试' : '加载失败，请稍后重试';
-    }
-}
-
-function displayDouyinHot(hotList) {
-    const douyinLoading = document.getElementById('douyinLoading');
-    const douyinContent = document.getElementById('douyinContent');
-    const douyinList = document.getElementById('douyinList');
-
-    douyinLoading.style.display = 'none';
-    douyinContent.style.display = 'block';
-
-    douyinList.innerHTML = hotList.map((item, index) => {
-        const rank = index + 1;
-        const isTop3 = rank <= 3;
-        const hotValue = item.hot || item.hot_value || item.heat || '热度未知';
-        const title = item.title || item.word || item.name || '未知标题';
-
-        return `
-            <div class="douyin-item ${isTop3 ? 'douyin-item-top3' : ''}" data-index="${rank}">
-                <div class="douyin-content-main">
-                    <div class="douyin-title-text">${title}</div>
-                    <div class="douyin-hot">
-                        <span class="douyin-hot-icon">🔥</span>
-                        <span>热度: ${hotValue}</span>
-                    </div>
-                </div>
-                <div class="douyin-rank ${rank === 1 ? 'douyin-rank-1' : ''}">${rank}</div>
-            </div>
-        `;
-    }).join('');
-}
-
-// 初始化抖音热点
-document.addEventListener('DOMContentLoaded', function() {
-    fetchDouyinHot();
-
-    const refreshDouyinBtn = document.getElementById('refreshDouyinBtn');
-    if (refreshDouyinBtn) {
-        refreshDouyinBtn.addEventListener('click', () => {
-            fetchDouyinHot();
-        });
-    }
 });

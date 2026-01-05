@@ -6,247 +6,291 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>聚合工具箱</title>
+    <meta name="description" content="聚合工具箱 - 提供油价查询、汇率转换、文本处理等实用工具，一站式在线工具集合">
+    <meta name="keywords" content="油价查询,汇率转换,文本处理,在线工具,实用工具">
+    <meta name="author" content="wuyingzhishang">
+    <meta name="theme-color" content="#0F172A">
+    <meta property="og:title" content="聚合工具箱 | 实用工具集合">
+    <meta property="og:description" content="提供油价查询、汇率转换、文本处理等实用工具">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://wuyingzhishang.github.io/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="聚合工具箱 | 实用工具集合">
+    <meta name="twitter:description" content="提供油价查询、汇率转换、文本处理等实用工具">
+    <title>聚合工具箱 | 实用工具集合</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="title">聚合工具箱</h1>
-            <p class="subtitle">实用工具集合，一站式查询服务</p>
-        </div>
+    <div class="app-container">
+<header class="app-header">
+            <div class="header-content">
+                <h1 class="title">聚合工具箱</h1>
+                <p class="subtitle">油价查询 · 汇率转换 · 文本处理</p>
+            </div>
+        </header>
 
-        <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="douyin">🔥 抖音热点</button>
-            <button class="nav-tab" data-tab="fuel">⛽ 油价查询</button>
-            <button class="nav-tab" data-tab="currency">💱 汇率转换</button>
-            <button class="nav-tab" data-tab="text">📝 文本处理</button>
+        <nav class="nav-tabs" role="tablist" aria-label="工具导航">
+            <button class="nav-tab active" data-tab="fuel" role="tab" aria-selected="true" aria-controls="fuelTab">
+                <span class="tab-icon">⛽</span>
+                <span class="tab-text">油价查询</span>
+            </button>
+            <button class="nav-tab" data-tab="currency" role="tab" aria-selected="false" aria-controls="currencyTab">
+                <span class="tab-icon">💱</span>
+                <span class="tab-text">汇率转换</span>
+            </button>
+            <button class="nav-tab" data-tab="text" role="tab" aria-selected="false" aria-controls="textTab">
+                <span class="tab-icon">📝</span>
+                <span class="tab-text">文本处理</span>
+            </button>
         </nav>
 
-        <div class="tab-content" id="douyinTab">
-            <div class="douyin-section">
-                <div class="douyin-header">
-                    <div class="douyin-title">
-                        <h2>🔥 抖音热榜</h2>
-                        <p class="douyin-subtitle">实时热点，一网打尽</p>
+        <main class="main-content">
+            <section class="tab-content active" id="fuelTab" role="tabpanel" aria-labelledby="fuel-tab">
+                <div class="search-section glass-card">
+                    <div class="section-header">
+                        <h2 class="section-title">油价查询</h2>
+                        <p class="section-description">查询全国各地区的实时油价信息</p>
                     </div>
-                    <button id="refreshDouyinBtn" class="refresh-btn">
-                        <span class="refresh-icon">🔄</span>
-                        刷新热榜
-                    </button>
-                </div>
-
-                <div class="douyin-loading" id="douyinLoading">
-                    <div class="spinner"></div>
-                    <p>正在加载抖音热点...</p>
-                </div>
-
-                <div class="douyin-content" id="douyinContent" style="display: none;">
-                    <div class="douyin-list" id="douyinList"></div>
-                </div>
-
-                <div class="error-message" id="douyinError" style="display: none;">
-                    <div class="error-icon">⚠️</div>
-                    <p id="douyinErrorText">加载失败，请稍后重试</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-content" id="fuelTab" style="display: none;">
-            <div class="search-section">
-                <div class="search-box">
-                    <input type="text" id="regionInput" placeholder="输入地区名称（如：上海、北京、广州）" autocomplete="off">
-                    <button id="searchBtn">查询</button>
-                </div>
-                <div class="quick-select">
-                    <span class="quick-label">热门地区：</span>
-                    <button class="quick-btn" data-region="北京">北京</button>
-                    <button class="quick-btn" data-region="上海">上海</button>
-                    <button class="quick-btn" data-region="广州">广州</button>
-                    <button class="quick-btn" data-region="深圳">深圳</button>
-                    <button class="quick-btn" data-region="杭州">杭州</button>
-                    <button class="quick-btn" data-region="成都">成都</button>
-                </div>
-            </div>
-
-            <div class="result-section" id="resultSection" style="display: none;">
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>正在查询油价信息...</p>
-                </div>
-
-                <div class="result-content" id="resultContent" style="display: none;">
-                    <div class="region-info">
-                        <h2 id="regionName">地区名称</h2>
-                        <p class="update-time" id="updateTime">更新时间</p>
+                    <div class="search-box">
+                        <label for="regionInput" class="visually-hidden">输入地区名称</label>
+                        <input type="text" id="regionInput" placeholder="输入地区名称（如：上海、北京、广州）" autocomplete="off" aria-label="地区名称">
+                        <button id="searchBtn" type="button" aria-label="查询油价">
+                            <span class="btn-icon">🔍</span>
+                            查询
+                        </button>
                     </div>
-
-                    <div class="price-grid">
-                        <div class="price-card type-92">
-                            <div class="card-header">
-                                <span class="fuel-type">92号汽油</span>
-                                <span class="fuel-icon">⛽</span>
-                            </div>
-                            <div class="price-value" id="price92">--</div>
-                            <div class="price-unit">元/升</div>
+                    <div class="quick-select">
+                        <span class="quick-label">热门地区：</span>
+                        <div class="quick-buttons">
+                            <button class="quick-btn" data-region="北京" type="button">北京</button>
+                            <button class="quick-btn" data-region="上海" type="button">上海</button>
+                            <button class="quick-btn" data-region="广州" type="button">广州</button>
+                            <button class="quick-btn" data-region="深圳" type="button">深圳</button>
+                            <button class="quick-btn" data-region="杭州" type="button">杭州</button>
+                            <button class="quick-btn" data-region="成都" type="button">成都</button>
                         </div>
-
-                        <div class="price-card type-95">
-                            <div class="card-header">
-                                <span class="fuel-type">95号汽油</span>
-                                <span class="fuel-icon">⛽</span>
-                            </div>
-                            <div class="price-value" id="price95">--</div>
-                            <div class="price-unit">元/升</div>
-                        </div>
-
-                        <div class="price-card type-98">
-                            <div class="card-header">
-                                <span class="fuel-type">98号汽油</span>
-                                <span class="fuel-icon">⛽</span>
-                            </div>
-                            <div class="price-value" id="price98">--</div>
-                            <div class="price-unit">元/升</div>
-                        </div>
-
-                        <div class="price-card type-diesel">
-                            <div class="card-header">
-                                <span class="fuel-type">0号柴油</span>
-                                <span class="fuel-icon">🛢️</span>
-                            </div>
-                            <div class="price-value" id="price0">--</div>
-                            <div class="price-unit">元/升</div>
-                        </div>
-                    </div>
-
-                    <div class="tips">
-                        <p>💡 提示：油价信息仅供参考，实际价格以加油站为准</p>
                     </div>
                 </div>
 
-                <div class="error-message" id="errorMessage" style="display: none;">
-                    <div class="error-icon">⚠️</div>
-                    <p id="errorText">查询失败，请稍后重试</p>
-                </div>
-            </div>
-        </div>
+            <div class="result-section" id="resultSection" style="display: none;" aria-live="polite">
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>正在查询油价信息...</p>
+                    </div>
 
-        <div class="tab-content" id="currencyTab" style="display: none;">
-            <div class="currency-section">
-                <div class="price-section">
-                    <div class="price-title">实时加密货币价格</div>
-                    <div class="price-cards">
-                        <div class="price-card">
-                            <div class="currency">USDT</div>
-                            <div class="price" id="usdt-price">
-                                <div class="loading-spinner"></div>
-                            </div>
+                    <div class="result-content" id="resultContent" style="display: none;">
+                        <div class="region-info glass-card">
+                            <h2 id="regionName">地区名称</h2>
+                            <p class="update-time" id="updateTime">更新时间</p>
                         </div>
-                        <div class="price-card">
-                            <div class="currency">TRX</div>
-                            <div class="price" id="trx-price">
-                                <div class="loading-spinner"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="price-error" class="error-message" style="display: none;"></div>
-                </div>
 
-                <div class="international-section">
-                    <div class="international-title">国际金额快速转换</div>
-                    <div class="input-group">
-                        <input type="number" id="amount" placeholder="输入金额">
-                        <select id="unit">
-                            <option value="k" selected>K</option>
-                            <option value="m">M</option>
-                            <option value="b">B</option>
-                        </select>
-                    </div>
-                    <div class="results-display">
-                        <div class="result-card">
-                            <div class="result-card-title">基础转换</div>
-                            <div class="result-content" id="left-result">
-                                <div class="loading-spinner" style="margin: 10px auto;"></div>
-                            </div>
+                        <div class="price-grid">
+                            <article class="price-card glass-card type-92">
+                                <div class="card-header">
+                                    <span class="fuel-type">92号汽油</span>
+                                    <span class="fuel-icon" aria-hidden="true">⛽</span>
+                                </div>
+                                <div class="price-value" id="price92">--</div>
+                                <div class="price-unit">元/升</div>
+                            </article>
+
+                            <article class="price-card glass-card type-95">
+                                <div class="card-header">
+                                    <span class="fuel-type">95号汽油</span>
+                                    <span class="fuel-icon" aria-hidden="true">⛽</span>
+                                </div>
+                                <div class="price-value" id="price95">--</div>
+                                <div class="price-unit">元/升</div>
+                            </article>
+
+                            <article class="price-card glass-card type-98">
+                                <div class="card-header">
+                                    <span class="fuel-type">98号汽油</span>
+                                    <span class="fuel-icon" aria-hidden="true">⛽</span>
+                                </div>
+                                <div class="price-value" id="price98">--</div>
+                                <div class="price-unit">元/升</div>
+                            </article>
+
+                            <article class="price-card glass-card type-diesel">
+                                <div class="card-header">
+                                    <span class="fuel-type">0号柴油</span>
+                                    <span class="fuel-icon" aria-hidden="true">🛢️</span>
+                                </div>
+                                <div class="price-value" id="price0">--</div>
+                                <div class="price-unit">元/升</div>
+                            </article>
                         </div>
-                        <div class="result-card">
-                            <div class="result-card-title">带单位转换</div>
-                            <div class="result-content" id="right-result">
-                                <div class="loading-spinner" style="margin: 10px auto;"></div>
-                            </div>
+
+                        <div class="tips info-card">
+                            <p>💡 提示：油价信息仅供参考，实际价格以加油站为准</p>
                         </div>
                     </div>
-                    <div id="international-error" class="error-message" style="display: none;"></div>
+
+                    <div class="error-message" id="errorMessage" style="display: none;" role="alert">
+                        <div class="error-icon" aria-hidden="true">⚠️</div>
+                        <p id="errorText">查询失败，请稍后重试</p>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
+
+        <section class="tab-content" id="currencyTab" role="tabpanel" aria-labelledby="currency-tab" style="display: none;">
+                <div class="currency-section">
+                    <div class="price-section glass-card">
+                        <div class="section-header">
+                            <h2 class="section-title">实时加密货币价格</h2>
+                            <p class="section-description">USDT 和 TRX 的实时汇率</p>
+                        </div>
+                        <div class="price-cards">
+                            <article class="price-card glass-card">
+                                <div class="currency">USDT</div>
+                                <div class="price" id="usdt-price" aria-live="polite">
+                                    <div class="loading-spinner"></div>
+                                </div>
+                            </article>
+                            <article class="price-card glass-card">
+                                <div class="currency">TRX</div>
+                                <div class="price" id="trx-price" aria-live="polite">
+                                    <div class="loading-spinner"></div>
+                                </div>
+                            </article>
+                        </div>
+                        <div id="price-error" class="error-message" style="display: none;" role="alert"></div>
+                    </div>
+
+                    <div class="international-section glass-card">
+                        <div class="section-header">
+                            <h2 class="section-title">国际金额快速转换</h2>
+                            <p class="section-description">K/M/B 单位快速转换</p>
+                        </div>
+                        <div class="input-group">
+                            <label for="amount" class="visually-hidden">输入金额</label>
+                            <input type="number" id="amount" placeholder="输入金额" aria-label="金额">
+                            <label for="unit" class="visually-hidden">选择单位</label>
+                            <select id="unit" aria-label="单位">
+                                <option value="k" selected>K (千)</option>
+                                <option value="m">M (百万)</option>
+                                <option value="b">B (十亿)</option>
+                            </select>
+                        </div>
+                        <div class="results-display">
+                            <article class="result-card glass-card">
+                                <div class="result-card-title">基础转换</div>
+                                <div class="result-content" id="left-result" aria-live="polite">
+                                    <div class="loading-spinner" style="margin: 10px auto;"></div>
+                                </div>
+                            </article>
+                            <article class="result-card glass-card">
+                                <div class="result-card-title">带单位转换</div>
+                                <div class="result-content" id="right-result" aria-live="polite">
+                                    <div class="loading-spinner" style="margin: 10px auto;"></div>
+                                </div>
+                            </article>
+                        </div>
+                        <div id="international-error" class="error-message" style="display: none;" role="alert"></div>
+                    </div>
+                </div>
+            </section>
 
         <div class="tab-content" id="textTab" style="display: none;">
             <div class="text-processor-section">
-                <div class="card">
-                    <div class="section format-section">
-                        <h3>格式设置</h3>
-                        <div class="format-grid">
-                            <div class="input-group">
-                                <label for="source-format">源文本格式</label>
-                                <input type="text" id="source-format" value="{1}----{2}----{3}----{4}" placeholder="例如: {1}----{2}----{3}----{4}">
-                            </div>
-                            <div class="input-group">
-                                <label for="target-format">目标格式</label>
-                                <input type="text" id="target-format" value="{2}----{3}" placeholder="例如: {2}----{3}">
-                            </div>
+                <div class="glass-card format-card">
+                    <div class="section-header">
+                        <h2 class="section-title">格式配置</h2>
+                        <p class="section-description">设置源文本和目标文本的格式规则</p>
+                    </div>
+                    <div class="format-grid">
+                        <div class="input-group">
+                            <label for="source-format">
+                                <span class="label-icon">📥</span>
+                                源文本格式
+                            </label>
+                            <input type="text" id="source-format" value="{1}----{2}----{3}----{4}" placeholder="例如: {1}----{2}----{3}----{4}">
+                            <span class="input-hint">系统会自动识别 ---- 分隔符</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="target-format">
+                                <span class="label-icon">📤</span>
+                                目标格式
+                            </label>
+                            <input type="text" id="target-format" value="{2}----{3}" placeholder="例如: {2}----{3}">
+                            <span class="input-hint">指定要提取的字段顺序</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="section input-section">
-                        <h3>输入文本</h3>
-                        <textarea id="input-text" placeholder="请输入要处理的文本，每行一个"></textarea>
+                <div class="text-workspace">
+                    <div class="glass-card input-card">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <span class="title-icon">⌨️</span>
+                                输入文本
+                            </h2>
+                            <span class="card-badge">自动识别</span>
+                        </div>
+                        <textarea id="input-text" placeholder="请输入要处理的文本，每行一个&#10;系统会自动识别 ---- 分隔符并生成格式"></textarea>
+                        <div class="input-footer">
+                            <span class="line-count" id="input-line-count">0 行</span>
+                            <button class="clear-input-btn" id="clear-input-btn" type="button">
+                                <span class="btn-icon">✕</span>
+                                清空
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="card">
-                    <div class="section control-section">
-                        <div class="control-row">
-                            <div class="toggle-group">
+                    <div class="action-panel">
+                        <div class="glass-card options-card">
+                            <div class="section-header">
+                                <h2 class="section-title">
+                                    <span class="title-icon">⚙️</span>
+                                    处理选项
+                                </h2>
+                            </div>
+                            <div class="option-item">
                                 <label class="toggle-label">
                                     <input type="checkbox" id="suffix-enabled" checked>
                                     <span class="toggle-slider"></span>
                                     <span class="toggle-text">添加后缀</span>
                                 </label>
-                            </div>
-                            <div class="number-control" id="suffix-input-group">
-                                <label for="suffix-number">后缀数字</label>
-                                <input type="number" id="suffix-number" value="20" min="0">
+                                <div class="number-control" id="suffix-input-group">
+                                    <input type="number" id="suffix-number" value="20" min="0" placeholder="数字">
+                                    <span class="control-label">后缀值</span>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="button-group">
-                            <button id="process-btn" class="btn btn-primary">
+
+                        <div class="action-buttons">
+                            <button id="process-btn" class="btn btn-primary btn-large">
                                 <span class="btn-icon">⚡</span>
                                 处理文本
                             </button>
-                            <button id="copy-btn" class="btn btn-secondary">
+                            <button id="copy-btn" class="btn btn-secondary btn-large">
                                 <span class="btn-icon">📋</span>
                                 复制结果
                             </button>
-                            <button id="clear-btn" class="btn btn-danger">
-                                <span class="btn-icon">🗑️</span>
-                                清空
-                            </button>
                         </div>
                     </div>
-                </div>
 
-                <div class="card">
-                    <div class="section output-section">
-                        <h3>处理结果</h3>
+                    <div class="glass-card output-card">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <span class="title-icon">📊</span>
+                                处理结果
+                            </h2>
+                            <span class="card-badge" id="output-badge">0 行</span>
+                        </div>
                         <div class="output-container">
                             <textarea id="output-text" readonly placeholder="处理结果将显示在这里..."></textarea>
-                            <div class="output-stats" id="output-stats">
-                                <span>0 行</span>
-                            </div>
+                        </div>
+                        <div class="output-footer">
+                            <span class="output-hint" id="output-hint">等待处理...</span>
+                            <button class="copy-output-btn" id="copy-output-btn" type="button">
+                                <span class="btn-icon">📋</span>
+                                复制
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -255,26 +299,27 @@
 
     </div>
 
-    <div class="social-bar">
-        <div class="social-actions">
-            <a href="https://x.com/wuyingzhidao" target="_blank" class="social-link" title="关注 X">
-                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zM17.083 19.77h1.833L7.084 4.126H5.117z" fill="currentColor"/>
-                </svg>
-            </a>
-            <a href="https://github.com/wuyingzhishang/wuyingzhishang.github.io" target="_blank" class="social-link" title="GitHub 仓库">
-                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.73-4.03-1.41-4.03-1.41-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.66-.31-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.31-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.4 3-.41 1.02.01 2.05.14 3.01.41 2.29-1.55 3.3-1.23 3.3-1.23.65 1.65.24 2.87.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z" fill="currentColor"/>
-                </svg>
-            </a>
-            <button id="addToHomeBtn" class="social-link add-to-home-btn" title="添加到主屏幕">
-                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 1.5h8A3.5 3.5 0 0 1 19.5 5v14A3.5 3.5 0 0 1 16 22.5H8A3.5 3.5 0 0 1 4.5 19V5A3.5 3.5 0 0 1 8 1.5zm0 2A1.5 1.5 0 0 0 6.5 5v14A1.5 1.5 0 0 0 8 20.5h8A1.5 1.5 0 0 0 17.5 19V5A1.5 1.5 0 0 0 16 3.5H8z" fill="currentColor"/>
-                    <path d="M12 7.5c.55 0 1 .45 1 1v2.5h2.5a1 1 0 1 1 0 2H13v2.5a1 1 0 1 1-2 0V13H8.5a1 1 0 1 1 0-2H11V8.5c0-.55.45-1 1-1z" fill="currentColor"/>
-                </svg>
-            </button>
-        </div>
-        <div class="share-center">
+    <!-- 底部分享栏 -->
+    <footer class="share-footer">
+        <div class="share-footer-content">
+            <div class="share-social">
+                <a href="https://x.com/wuyingzhidao" target="_blank" class="share-icon" title="关注 X" aria-label="关注 X">
+                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zM17.083 19.77h1.833L7.084 4.126H5.117z" fill="currentColor"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/wuyingzhishang/wuyingzhishang.github.io" target="_blank" class="share-icon" title="GitHub 仓库" aria-label="GitHub 仓库">
+                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.73-4.03-1.41-4.03-1.41-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.66-.31-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.31-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.4 3-.41 1.02.01 2.05.14 3.01.41 2.29-1.55 3.3-1.23 3.3-1.23.65 1.65.24 2.87.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z" fill="currentColor"/>
+                    </svg>
+                </a>
+                <button id="addToHomeBtn" class="share-icon" title="添加到主屏幕" aria-label="添加到主屏幕">
+                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 1.5h8A3.5 3.5 0 0 1 19.5 5v14A3.5 3.5 0 0 1 16 22.5H8A3.5 3.5 0 0 1 4.5 19V5A3.5 3.5 0 0 1 8 1.5zm0 2A1.5 1.5 0 0 0 6.5 5v14A1.5 1.5 0 0 0 8 20.5h8A1.5 1.5 0 0 0 17.5 19V5A1.5 1.5 0 0 0 16 3.5H8z" fill="currentColor"/>
+                        <path d="M12 7.5c.55 0 1 .45 1 1v2.5h2.5a1 1 0 1 1 0 2H13v2.5a1 1 0 1 1-2 0V13H8.5a1 1 0 1 1 0-2H11V8.5c0-.55.45-1 1-1z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
             <button id="shareSiteBtn" class="share-btn" type="button" title="复制网址分享">
                 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 13a5 5 0 0 1 0-7l.7-.7a5 5 0 0 1 7.1 7.1l-.7.7" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -282,9 +327,8 @@
                 </svg>
                 复制网址
             </button>
-
         </div>
-    </div>
+    </footer>
 
     <script src="script.js"></script>
 
