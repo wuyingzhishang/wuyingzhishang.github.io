@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -20,12 +21,63 @@
     <title>聚合工具箱 | 实用工具集合</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .bg-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-gradient {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: radial-gradient(circle at center, rgba(30, 0, 60, 0.4) 0%, #050510 70%);
+            animation: rotateBg 20s linear infinite;
+        }
+
+        .bg-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+        }
+
+        @keyframes rotateBg {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
+
 <body>
+    <div class="bg-fixed">
+        <div class="bg-gradient"></div>
+        <div class="bg-grid"></div>
+    </div>
     <div class="app-container">
-<header class="app-header">
+        <header class="app-header">
             <div class="header-content">
                 <h1 class="title">聚合工具箱</h1>
                 <p class="subtitle">油价查询 · 汇率转换 · 文本处理</p>
@@ -33,14 +85,20 @@
         </header>
 
         <nav class="nav-tabs" role="tablist" aria-label="工具导航">
-            <button class="nav-tab active" data-tab="fuel" role="tab" aria-selected="true" aria-controls="fuelTab">
+            <button class="nav-tab active" data-tab="shorturl" role="tab" aria-selected="true"
+                aria-controls="shorturlTab">
+                <span class="tab-icon">�</span>
+                <span class="tab-text">二维码生成</span>
+            </button>
+            <button class="nav-tab" data-tab="fuel" role="tab" aria-selected="false" aria-controls="fuelTab">
                 <span class="tab-icon">⛽</span>
                 <span class="tab-text">油价查询</span>
             </button>
             <button class="nav-tab" data-tab="currency" role="tab" aria-selected="false" aria-controls="currencyTab">
-                <span class="tab-icon">💱</span>
+                <span class="tab-icon">�</span>
                 <span class="tab-text">汇率转换</span>
             </button>
+
             <button class="nav-tab" data-tab="text" role="tab" aria-selected="false" aria-controls="textTab">
                 <span class="tab-icon">📝</span>
                 <span class="tab-text">文本处理</span>
@@ -48,7 +106,59 @@
         </nav>
 
         <main class="main-content">
-            <section class="tab-content active" id="fuelTab" role="tabpanel" aria-labelledby="fuel-tab">
+            <!-- 二维码生成 Tab -->
+            <section class="tab-content active" id="shorturlTab" role="tabpanel" aria-labelledby="shorturl-tab">
+                <div class="qrcode-section">
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2 class="section-title">二维码生成</h2>
+                            <p class="section-description">免费将网址或文本转换为二维码</p>
+                        </div>
+
+                        <div class="qrcode-workspace">
+                            <div class="input-group">
+                                <label for="qrcodeInput" class="visually-hidden">输入内容</label>
+                                <input type="text" id="qrcodeInput" placeholder="请输入网址或文本内容" autocomplete="off">
+                            </div>
+
+                            <div class="qrcode-options"
+                                style="display: flex; gap: 1rem; margin-top: 1rem; align-items: center;">
+                                <label for="qrcodeSizeSelect" style="color: var(--text-secondary);">尺寸：</label>
+                                <select id="qrcodeSizeSelect" style="flex: 1;">
+                                    <option value="150">小 (150px)</option>
+                                    <option value="200" selected>中 (200px)</option>
+                                    <option value="300">大 (300px)</option>
+                                    <option value="400">超大 (400px)</option>
+                                </select>
+                            </div>
+
+                            <button id="generateQrcodeBtn" class="btn btn-primary btn-large"
+                                style="width: 100%; margin-top: 1rem;">
+                                <span class="btn-icon">📱</span>
+                                生成二维码
+                            </button>
+
+                            <div class="qrcode-result" id="qrcodeResult" style="display: none; margin-top: 1.5rem;">
+                                <div class="glass-card"
+                                    style="text-align: center; padding: 2rem; background: rgba(0, 243, 255, 0.05); border-color: var(--neon-cyan);">
+                                    <img id="qrcodeImage" src="" alt="生成的二维码"
+                                        style="max-width: 100%; border-radius: 8px; background: #fff; padding: 10px;">
+                                    <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 1rem;">
+                                        <a id="downloadQrcodeBtn" href="#" download="qrcode.png"
+                                            class="btn btn-secondary">
+                                            <span class="btn-icon">⬇️</span>
+                                            下载二维码
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 油价查询 Tab -->
+            <section class="tab-content" id="fuelTab" role="tabpanel" aria-labelledby="fuel-tab" style="display: none;">
                 <div class="search-section glass-card">
                     <div class="section-header">
                         <h2 class="section-title">油价查询</h2>
@@ -56,7 +166,8 @@
                     </div>
                     <div class="search-box">
                         <label for="regionInput" class="visually-hidden">输入地区名称</label>
-                        <input type="text" id="regionInput" placeholder="输入地区名称（如：上海、北京、广州）" autocomplete="off" aria-label="地区名称">
+                        <input type="text" id="regionInput" placeholder="输入地区名称（如：上海、北京、广州）" autocomplete="off"
+                            aria-label="地区名称">
                         <button id="searchBtn" type="button" aria-label="查询油价">
                             <span class="btn-icon">🔍</span>
                             查询
@@ -75,7 +186,7 @@
                     </div>
                 </div>
 
-            <div class="result-section" id="resultSection" style="display: none;" aria-live="polite">
+                <div class="result-section" id="resultSection" style="display: none;" aria-live="polite">
                     <div class="loading" id="loading">
                         <div class="spinner"></div>
                         <p>正在查询油价信息...</p>
@@ -137,7 +248,8 @@
                 </div>
             </section>
 
-        <section class="tab-content" id="currencyTab" role="tabpanel" aria-labelledby="currency-tab" style="display: none;">
+            <section class="tab-content" id="currencyTab" role="tabpanel" aria-labelledby="currency-tab"
+                style="display: none;">
                 <div class="currency-section">
                     <div class="price-section glass-card">
                         <div class="section-header">
@@ -195,175 +307,389 @@
                 </div>
             </section>
 
-        <div class="tab-content" id="textTab" style="display: none;">
-            <div class="text-processor-section">
-                <div class="glass-card format-card">
-                    <div class="section-header">
-                        <h2 class="section-title">格式配置</h2>
-                        <p class="section-description">设置源文本和目标文本的格式规则</p>
-                    </div>
-                    <div class="format-grid">
-                        <div class="input-group">
-                            <label for="source-format">
-                                <span class="label-icon">📥</span>
-                                源文本格式
-                            </label>
-                            <input type="text" id="source-format" value="{1}----{2}----{3}----{4}" placeholder="例如: {1}----{2}----{3}----{4}">
-                            <span class="input-hint">系统会自动识别 ---- 分隔符</span>
-                        </div>
-                        <div class="input-group">
-                            <label for="target-format">
-                                <span class="label-icon">📤</span>
-                                目标格式
-                            </label>
-                            <input type="text" id="target-format" value="{2}----{3}" placeholder="例如: {2}----{3}">
-                            <span class="input-hint">指定要提取的字段顺序</span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="text-workspace">
-                    <div class="glass-card input-card">
+
+            <div class="tab-content" id="textTab" style="display: none;">
+                <div class="text-processor-section">
+                    <div class="glass-card format-card">
                         <div class="section-header">
-                            <h2 class="section-title">
-                                <span class="title-icon">⌨️</span>
-                                输入文本
-                            </h2>
-                            <span class="card-badge">自动识别</span>
+                            <h2 class="section-title">格式配置</h2>
+                            <p class="section-description">设置源文本和目标文本的格式规则</p>
                         </div>
-                        <textarea id="input-text" placeholder="请输入要处理的文本，每行一个&#10;系统会自动识别 ---- 分隔符并生成格式"></textarea>
-                        <div class="input-footer">
-                            <span class="line-count" id="input-line-count">0 行</span>
-                            <button class="clear-input-btn" id="clear-input-btn" type="button">
-                                <span class="btn-icon">✕</span>
-                                清空
-                            </button>
+                        <div class="format-grid">
+                            <div class="input-group">
+                                <label for="source-format">
+                                    <span class="label-icon">📥</span>
+                                    源文本格式
+                                </label>
+                                <input type="text" id="source-format" value="{1}----{2}----{3}----{4}"
+                                    placeholder="例如: {1}----{2}----{3}----{4}">
+                                <span class="input-hint">系统会自动识别 ---- 分隔符</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="target-format">
+                                    <span class="label-icon">📤</span>
+                                    目标格式
+                                </label>
+                                <input type="text" id="target-format" value="{2}----{3}" placeholder="例如: {2}----{3}">
+                                <span class="input-hint">指定要提取的字段顺序</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="action-panel">
-                        <div class="glass-card options-card">
+                    <div class="text-workspace">
+                        <div class="glass-card input-card">
                             <div class="section-header">
                                 <h2 class="section-title">
-                                    <span class="title-icon">⚙️</span>
-                                    处理选项
+                                    <span class="title-icon">⌨️</span>
+                                    输入文本
                                 </h2>
+                                <span class="card-badge">自动识别</span>
                             </div>
-                            <div class="option-item">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="suffix-enabled" checked>
-                                    <span class="toggle-slider"></span>
-                                    <span class="toggle-text">添加后缀</span>
-                                </label>
-                                <div class="number-control" id="suffix-input-group">
-                                    <input type="number" id="suffix-number" value="20" min="0" placeholder="数字">
-                                    <span class="control-label">后缀值</span>
+                            <textarea id="input-text" placeholder="请输入要处理的文本，每行一个&#10;系统会自动识别 ---- 分隔符并生成格式"></textarea>
+                            <div class="input-footer">
+                                <span class="line-count" id="input-line-count">0 行</span>
+                                <button class="clear-input-btn" id="clear-input-btn" type="button">
+                                    <span class="btn-icon">✕</span>
+                                    清空
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="action-panel">
+                            <div class="glass-card options-card">
+                                <div class="section-header">
+                                    <h2 class="section-title">
+                                        <span class="title-icon">⚙️</span>
+                                        处理选项
+                                    </h2>
+                                </div>
+                                <div class="option-item">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="suffix-enabled" checked>
+                                        <span class="toggle-slider"></span>
+                                        <span class="toggle-text">添加后缀</span>
+                                    </label>
+                                    <div class="number-control" id="suffix-input-group">
+                                        <input type="number" id="suffix-number" value="20" min="0" placeholder="数字">
+                                        <span class="control-label">后缀值</span>
+                                    </div>
                                 </div>
                             </div>
+
+                            <div class="action-buttons">
+                                <button id="process-btn" class="btn btn-primary btn-large">
+                                    <span class="btn-icon">⚡</span>
+                                    处理文本
+                                </button>
+                                <button id="copy-btn" class="btn btn-secondary btn-large">
+                                    <span class="btn-icon">📋</span>
+                                    复制结果
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="action-buttons">
-                            <button id="process-btn" class="btn btn-primary btn-large">
-                                <span class="btn-icon">⚡</span>
-                                处理文本
+                        <div class="glass-card output-card">
+                            <div class="section-header">
+                                <h2 class="section-title">
+                                    <span class="title-icon">📊</span>
+                                    处理结果
+                                </h2>
+                                <span class="card-badge" id="output-badge">0 行</span>
+                            </div>
+                            <div class="output-container">
+                                <textarea id="output-text" readonly placeholder="处理结果将显示在这里..."></textarea>
+                            </div>
+                            <div class="output-footer">
+                                <span class="output-hint" id="output-hint">等待处理...</span>
+                                <button class="copy-output-btn" id="copy-output-btn" type="button">
+                                    <span class="btn-icon">📋</span>
+                                    复制
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="tab-content" id="webmasterTab" role="tabpanel" aria-labelledby="webmaster-tab"
+                    style="display: none;">
+                    <div class="webmaster-section">
+                        <div class="glass-card">
+                            <div class="section-header">
+                                <h2 class="section-title">站长实用工具</h2>
+                                <p class="section-description">常用网站运维与开发工具集合</p>
+                            </div>
+
+                            <div class="tool-grid">
+                                <!-- Tool 1 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                                <path
+                                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">域名到期列表</h3>
+                                            <p class="tool-desc">过期域名查询工具提供快速查询</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 23.1万 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+
+                                <!-- Tool 2 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                                <line x1="9" y1="3" x2="9" y2="21"></line>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">仿站工具</h3>
+                                            <p class="tool-desc">输入要仿站的页面地址，自动下载</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 144.1万 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+
+                                <!-- Tool 3 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <circle cx="11" cy="11" r="8"></circle>
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">域名NS查询</h3>
+                                            <p class="tool-desc">在线查询域名NS记录，NS (Name Server)</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 3.4千 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+
+                                <!-- Tool 4 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">网址批量打开</h3>
+                                            <p class="tool-desc">一款网址批量打开工具，可以在同一窗口批量打开多个网站。</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 138.4万 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+
+                                <!-- Tool 5 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">多地点Ping检测</h3>
+                                            <p class="tool-desc">通过该工具可以从多个地点Ping服务器</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 14.6万 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+
+                                <!-- Tool 6 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71">
+                                                </path>
+                                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">友情链接检查</h3>
+                                            <p class="tool-desc">友情链接检查工具，可以方便检测对方是否有链接回您的网站。</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 8.8千 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+
+                                <!-- Tool 7 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">SSL证书转换</h3>
+                                            <p class="tool-desc">将PEM证书转成PFX证书供IIS使用</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 10.3万 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+
+                                <!-- Tool 8 -->
+                                <article class="tool-card">
+                                    <div class="tool-main">
+                                        <div class="tool-icon-box">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path
+                                                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                                </path>
+                                                <polyline points="22,6 12,13 2,6"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div class="tool-content">
+                                            <h3 class="tool-title">在线隐藏Email</h3>
+                                            <p class="tool-desc">在线生成Email防抓取代码</p>
+                                        </div>
+                                    </div>
+                                    <div class="tool-footer">
+                                        <span class="tool-stats">🔥 1.8千 收藏</span>
+                                        <button class="tool-action">使用</button>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- 底部分享栏 -->
+            <footer class="share-footer">
+                <div class="share-footer-content">
+                    <div class="share-social">
+                        <a href="https://x.com/wuyingzhidao" target="_blank" class="share-icon" title="关注 X"
+                            aria-label="关注 X">
+                            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zM17.083 19.77h1.833L7.084 4.126H5.117z"
+                                    fill="currentColor" />
+                            </svg>
+                        </a>
+                        <a href="https://github.com/wuyingzhishang/wuyingzhishang.github.io" target="_blank"
+                            class="share-icon" title="GitHub 仓库" aria-label="GitHub 仓库">
+                            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.73-4.03-1.41-4.03-1.41-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.66-.31-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.31-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.4 3-.41 1.02.01 2.05.14 3.01.41 2.29-1.55 3.3-1.23 3.3-1.23.65 1.65.24 2.87.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"
+                                    fill="currentColor" />
+                            </svg>
+                        </a>
+                        <button id="addToHomeBtn" class="share-icon" title="添加到主屏幕" aria-label="添加到主屏幕">
+                            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M8 1.5h8A3.5 3.5 0 0 1 19.5 5v14A3.5 3.5 0 0 1 16 22.5H8A3.5 3.5 0 0 1 4.5 19V5A3.5 3.5 0 0 1 8 1.5zm0 2A1.5 1.5 0 0 0 6.5 5v14A1.5 1.5 0 0 0 8 20.5h8A1.5 1.5 0 0 0 17.5 19V5A1.5 1.5 0 0 0 16 3.5H8z"
+                                    fill="currentColor" />
+                                <path
+                                    d="M12 7.5c.55 0 1 .45 1 1v2.5h2.5a1 1 0 1 1 0 2H13v2.5a1 1 0 1 1-2 0V13H8.5a1 1 0 1 1 0-2H11V8.5c0-.55.45-1 1-1z"
+                                    fill="currentColor" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button id="shareSiteBtn" class="share-btn" type="button" title="复制网址分享">
+                        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 13a5 5 0 0 1 0-7l.7-.7a5 5 0 0 1 7.1 7.1l-.7.7" fill="none"
+                                stroke="currentColor" stroke-width="2" />
+                            <path d="M14 11a5 5 0 0 1 0 7l-.7.7a5 5 0 0 1-7.1-7.1l.7-.7" fill="none"
+                                stroke="currentColor" stroke-width="2" />
+                        </svg>
+                        复制网址
+                    </button>
+                </div>
+            </footer>
+
+            <script src="script.js"></script>
+
+            <div id="shareToast" class="toast">
+                <div class="toast-icon"></div>
+                <div class="toast-text"></div>
+            </div>
+
+            <div id="shareImageModal" class="modal">
+                <div class="modal-content share-modal-content">
+                    <div class="modal-header">
+                        <h3>分享图预览</h3>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="share-preview">
+                            <img id="shareImagePreview" alt="分享图预览" />
+                        </div>
+                        <div class="share-actions">
+                            <button class="btn btn-primary" id="copyShareImageBtn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path
+                                        d="M8 7.5A3.5 3.5 0 0 1 11.5 4h7A3.5 3.5 0 0 1 22 7.5v9A3.5 3.5 0 0 1 18.5 20h-7A3.5 3.5 0 0 1 8 16.5v-9zm3.5-1.5A1.5 1.5 0 0 0 10 7.5v9a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 18.5 6h-7z"
+                                        fill="currentColor" />
+                                </svg>
+                                复制图片
                             </button>
-                            <button id="copy-btn" class="btn btn-secondary btn-large">
-                                <span class="btn-icon">📋</span>
-                                复制结果
+                            <button class="btn btn-secondary" id="downloadShareImageBtn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path
+                                        d="M12 2.5c.55 0 1 .45 1 1v8.2l2.23-2.23a1 1 0 1 1 1.41 1.42l-3.94 3.94a1 1 0 0 1-1.41 0L7.36 10.9a1 1 0 1 1 1.41-1.42L11 11.7V3.5c0-.55.45-1 1-1z"
+                                        fill="currentColor" />
+                                    <path
+                                        d="M6.5 14c.55 0 1 .45 1 1v2.5c0 .55.45 1 1 1h7c.55 0 1-.45 1-1V15c0-.55.45-1 1-1s1 .45 1 1v2.5c0 1.66-1.34 3-3 3h-7c-1.66 0-3-1.34-3-3V15c0-.55.45-1 1-1z"
+                                        fill="currentColor" />
+                                </svg>
+                                下载图片
                             </button>
                         </div>
                     </div>
-
-                    <div class="glass-card output-card">
-                        <div class="section-header">
-                            <h2 class="section-title">
-                                <span class="title-icon">📊</span>
-                                处理结果
-                            </h2>
-                            <span class="card-badge" id="output-badge">0 行</span>
-                        </div>
-                        <div class="output-container">
-                            <textarea id="output-text" readonly placeholder="处理结果将显示在这里..."></textarea>
-                        </div>
-                        <div class="output-footer">
-                            <span class="output-hint" id="output-hint">等待处理...</span>
-                            <button class="copy-output-btn" id="copy-output-btn" type="button">
-                                <span class="btn-icon">📋</span>
-                                复制
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </div>
-
-    </div>
-
-    <!-- 底部分享栏 -->
-    <footer class="share-footer">
-        <div class="share-footer-content">
-            <div class="share-social">
-                <a href="https://x.com/wuyingzhidao" target="_blank" class="share-icon" title="关注 X" aria-label="关注 X">
-                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zM17.083 19.77h1.833L7.084 4.126H5.117z" fill="currentColor"/>
-                    </svg>
-                </a>
-                <a href="https://github.com/wuyingzhishang/wuyingzhishang.github.io" target="_blank" class="share-icon" title="GitHub 仓库" aria-label="GitHub 仓库">
-                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.73-4.03-1.41-4.03-1.41-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.66-.31-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.31-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23.96-.27 1.98-.4 3-.41 1.02.01 2.05.14 3.01.41 2.29-1.55 3.3-1.23 3.3-1.23.65 1.65.24 2.87.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.22.69.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z" fill="currentColor"/>
-                    </svg>
-                </a>
-                <button id="addToHomeBtn" class="share-icon" title="添加到主屏幕" aria-label="添加到主屏幕">
-                    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 1.5h8A3.5 3.5 0 0 1 19.5 5v14A3.5 3.5 0 0 1 16 22.5H8A3.5 3.5 0 0 1 4.5 19V5A3.5 3.5 0 0 1 8 1.5zm0 2A1.5 1.5 0 0 0 6.5 5v14A1.5 1.5 0 0 0 8 20.5h8A1.5 1.5 0 0 0 17.5 19V5A1.5 1.5 0 0 0 16 3.5H8z" fill="currentColor"/>
-                        <path d="M12 7.5c.55 0 1 .45 1 1v2.5h2.5a1 1 0 1 1 0 2H13v2.5a1 1 0 1 1-2 0V13H8.5a1 1 0 1 1 0-2H11V8.5c0-.55.45-1 1-1z" fill="currentColor"/>
-                    </svg>
-                </button>
-            </div>
-            <button id="shareSiteBtn" class="share-btn" type="button" title="复制网址分享">
-                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 13a5 5 0 0 1 0-7l.7-.7a5 5 0 0 1 7.1 7.1l-.7.7" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <path d="M14 11a5 5 0 0 1 0 7l-.7.7a5 5 0 0 1-7.1-7.1l.7-.7" fill="none" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                复制网址
-            </button>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
-
-    <div id="shareToast" class="toast">
-        <div class="toast-icon"></div>
-        <div class="toast-text"></div>
-    </div>
-
-    <div id="shareImageModal" class="modal">
-        <div class="modal-content share-modal-content">
-            <div class="modal-header">
-                <h3>分享图预览</h3>
-                <span class="close" onclick="closeShareImageModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="share-preview">
-                    <img id="shareImagePreview" alt="分享图预览" />
-                </div>
-                <div class="share-actions">
-                    <button class="btn btn-primary" id="copyShareImageBtn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M8 7.5A3.5 3.5 0 0 1 11.5 4h7A3.5 3.5 0 0 1 22 7.5v9A3.5 3.5 0 0 1 18.5 20h-7A3.5 3.5 0 0 1 8 16.5v-9zm3.5-1.5A1.5 1.5 0 0 0 10 7.5v9a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 18.5 6h-7z" fill="currentColor"/>
-                        </svg>
-                        复制图片
-                    </button>
-                    <button class="btn btn-secondary" id="downloadShareImageBtn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 2.5c.55 0 1 .45 1 1v8.2l2.23-2.23a1 1 0 1 1 1.41 1.42l-3.94 3.94a1 1 0 0 1-1.41 0L7.36 10.9a1 1 0 1 1 1.41-1.42L11 11.7V3.5c0-.55.45-1 1-1z" fill="currentColor"/>
-                            <path d="M6.5 14c.55 0 1 .45 1 1v2.5c0 .55.45 1 1 1h7c.55 0 1-.45 1-1V15c0-.55.45-1 1-1s1 .45 1 1v2.5c0 1.66-1.34 3-3 3h-7c-1.66 0-3-1.34-3-3V15c0-.55.45-1 1-1z" fill="currentColor"/>
-                        </svg>
-                        下载图片
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
+
 </html>

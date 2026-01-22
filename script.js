@@ -1,893 +1,516 @@
-const FUEL_API_URL = 'https://api.nxvav.cn/api/fuel-price/';
+/**
+ * Shadow Supreme Toolbox - Core Logic
+ * Optimized for Performance and Security
+ */
 
-const regionInput = document.getElementById('regionInput');
-const searchBtn = document.getElementById('searchBtn');
-const quickBtns = document.querySelectorAll('.quick-btn[data-region]');
-const resultSection = document.getElementById('resultSection');
-const loading = document.getElementById('loading');
-const resultContent = document.getElementById('resultContent');
-const errorMessage = document.getElementById('errorMessage');
-const errorText = document.getElementById('errorText');
-
-const navTabs = document.querySelectorAll('.nav-tab');
-const tabContents = document.querySelectorAll('.tab-content');
-
-navTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        const targetTab = tab.getAttribute('data-tab');
-        
-        navTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        tabContents.forEach(content => {
-            content.style.display = 'none';
-        });
-        
-        document.getElementById(`${targetTab}Tab`).style.display = 'block';
-    });
-});
-
-async function fetchFuelPrice(region) {
-    if (!region || region.trim() === '') {
-        showError('请输入地区名称');
-        return;
+const CONFIG = {
+    API: {
+        FUEL: 'https://api.nxvav.cn/api/fuel-price/',
+        QRCODE: 'http://api.lykep.com/api/qrcode',
+        EXCHANGE: [
+            { name: 'binance', url: 'https://api.binance.com/api/v3/ticker/price?symbol=USDTUSDT', parser: 'binance' },
+            { name: 'coingecko', url: 'https://api.coingecko.com/api/v3/simple/price?ids=tether,tron&vs_currencies=usd,cny', parser: 'coingecko' },
+            { name: 'frankfurter', url: 'https://api.frankfurter.app/latest?from=USD&to=CNY', parser: 'frankfurter' }
+        ]
+    },
+    TIMEOUT: 5000,
+    DEFAULTS: {
+        USDT: { usd: 1.0, cny: 7.2932 },
+        TRX: { usd: 0.2431, cny: 1.7725 },
+        USD_CNY: 7.2932
+    },
+    THEME: {
+        BG_GRADIENT_START: '#050510',
+        BG_GRADIENT_END: '#020205',
+        ACCENT_CYAN: '#00F3FF',
+        ACCENT_PURPLE: '#BC13FE',
+        TEXT_MAIN: '#F0F0FF',
+        TEXT_SEC: '#8899AC'
     }
-
-    showLoading();
-
-    try {
-        const encodedRegion = encodeURIComponent(region.trim());
-        const response = await fetch(`${FUEL_API_URL}?region=${encodedRegion}&encoding=json`);
-        
-        if (!response.ok) {
-            throw new Error('网络请求失败');
-        }
-
-        const data = await response.json();
-        
-        if (data && data.code === 200) {
-            displayResult(data);
-        } else {
-            showError('未找到该地区的油价信息，请检查地区名称是否正确');
-        }
-    } catch (error) {
-        console.error('API请求错误:', error);
-        showError('查询失败，请稍后重试');
-    }
-}
-
-function showLoading() {
-    resultSection.style.display = 'block';
-    loading.style.display = 'block';
-    resultContent.style.display = 'none';
-    errorMessage.style.display = 'none';
-}
-
-function displayResult(data) {
-    loading.style.display = 'none';
-    resultContent.style.display = 'block';
-    errorMessage.style.display = 'none';
-
-    const regionName = document.getElementById('regionName');
-    const updateTime = document.getElementById('updateTime');
-    const price92 = document.getElementById('price92');
-    const price95 = document.getElementById('price95');
-    const price98 = document.getElementById('price98');
-    const price0 = document.getElementById('price0');
-
-    if (data.data && data.data.items) {
-        regionName.textContent = data.data.region || regionInput.value;
-        
-        const date = data.data.updated || new Date().toLocaleDateString('zh-CN');
-        updateTime.textContent = `更新时间：${date}`;
-
-        const items = data.data.items;
-        items.forEach(item => {
-            if (item.name.includes('92#汽油')) {
-                price92.textContent = item.price;
-            } else if (item.name.includes('95#汽油')) {
-                price95.textContent = item.price;
-            } else if (item.name.includes('98#汽油')) {
-                price98.textContent = item.price;
-            } else if (item.name.includes('0#柴油')) {
-                price0.textContent = item.price;
-            }
-        });
-    } else {
-        showError('数据格式错误');
-    }
-}
-
-function showError(message) {
-    loading.style.display = 'none';
-    resultContent.style.display = 'none';
-    errorMessage.style.display = 'block';
-    errorText.textContent = message;
-}
-
-function showErrorById(elementId, message) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.style.display = 'block';
-        element.textContent = message;
-    }
-}
-
-searchBtn.addEventListener('click', () => {
-    fetchFuelPrice(regionInput.value);
-});
-
-regionInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        fetchFuelPrice(regionInput.value);
-    }
-});
-
-quickBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const region = btn.getAttribute('data-region');
-        regionInput.value = region;
-        fetchFuelPrice(region);
-    });
-});
-
-regionInput.addEventListener('input', () => {
-    if (resultSection.style.display === 'block') {
-        resultSection.style.display = 'none';
-    }
-});
-
-
-let exchangeRateData = {
-    usdt: { usd: 1.0, cny: 7.2932 },
-    trx: { usd: 0.0, cny: 0.0 },
-    usdToCny: 7.2932,
-    lastUpdate: null
 };
 
-const EXCHANGE_APIS = [
-    { name: 'exmo', url: 'https://api.exmo.com/v1/ticker', parser: parseExmoData },
-    { name: 'binance', url: 'https://api.binance.com/api/v3/ticker/price?symbol=USDTUSDT', parser: parseBinanceUSDT },
-    { name: 'coingecko', url: 'https://api.coingecko.com/api/v3/simple/price?ids=tether,tron&vs_currencies=usd,cny', parser: parseCoinGeckoData },
-    { name: 'frankfurter', url: 'https://api.frankfurter.app/latest?from=USD&to=CNY', parser: parseFrankfurterData }
-];
+// ==================== State Management ====================
+const state = {
+    exchangeRates: {
+        usdt: { ...CONFIG.DEFAULTS.USDT },
+        trx: { ...CONFIG.DEFAULTS.TRX },
+        usdToCny: CONFIG.DEFAULTS.USD_CNY,
+        lastUpdate: null
+    }
+};
 
-function parseExmoData(data) {
-    try {
-        if (data.USDT_USD && data.USDT_CNY) {
-            return {
-                usdt: { usd: 1 / parseFloat(data.USDT_USD), cny: parseFloat(data.USDT_CNY) },
-                trx: { usd: parseFloat(data.TRX_USD) || 0, cny: parseFloat(data.TRX_CNY) || 0 },
-                usdToCny: parseFloat(data.USDT_CNY)
-            };
+// ==================== DOM Elements ====================
+const dom = {
+    tabs: document.querySelectorAll('.nav-tab'),
+    contents: document.querySelectorAll('.tab-content'),
+    fuel: {
+        input: document.getElementById('regionInput'),
+        btn: document.getElementById('searchBtn'),
+        quickBtns: document.querySelectorAll('.quick-btn'),
+        resultSection: document.getElementById('resultSection'),
+        loading: document.getElementById('loading'),
+        content: document.getElementById('resultContent'),
+        error: document.getElementById('errorMessage'),
+        regionName: document.getElementById('regionName'),
+        updateTime: document.getElementById('updateTime'),
+        prices: {
+            p92: document.getElementById('price92'),
+            p95: document.getElementById('price95'),
+            p98: document.getElementById('price98'),
+            p0: document.getElementById('price0')
         }
-        return null;
-    } catch (e) {
-        return null;
+    },
+    currency: {
+        usdt: document.getElementById('usdt-price'),
+        trx: document.getElementById('trx-price'),
+        amount: document.getElementById('amount'),
+        unit: document.getElementById('unit'),
+        leftResult: document.getElementById('left-result'),
+        rightResult: document.getElementById('right-result')
+    },
+    text: {
+        processBtn: document.getElementById('process-btn'),
+        input: document.getElementById('input-text'),
+        output: document.getElementById('output-text'),
+        sourceFormat: document.getElementById('source-format'),
+        targetFormat: document.getElementById('target-format'),
+        suffixCheck: document.getElementById('suffix-enabled'),
+        suffixNum: document.getElementById('suffix-number'),
+        copyOutput: document.getElementById('copy-output-btn'),
+        badge: document.getElementById('output-badge'),
+        clearBtn: document.getElementById('clear-input-btn')
+    },
+    share: {
+        btn: document.getElementById('shareSiteBtn'),
+        modal: document.getElementById('shareImageModal'),
+        preview: document.getElementById('shareImagePreview'),
+        copyBtn: document.getElementById('copyShareImageBtn'),
+        downloadBtn: document.getElementById('downloadShareImageBtn')
     }
-}
+};
 
-function parseBinanceUSDT(data) {
-    try {
-        const usdtPrice = parseFloat(data.price);
-        if (usdtPrice && usdtPrice > 0) {
-            return {
-                usdt: { usd: 1.0, cny: usdtPrice },
-                trx: { usd: 0, cny: 0 },
-                usdToCny: usdtPrice
-            };
-        }
-        return null;
-    } catch (e) {
-        return null;
-    }
-}
-
-function parseCoinGeckoData(data) {
-    try {
-        const usdt = data.tether || {};
-        const trx = data.tron || {};
-        if (usdt.usd && usdt.cny) {
-            return {
-                usdt: { usd: usdt.usd, cny: usdt.cny },
-                trx: { usd: trx.usd || 0, cny: trx.cny || 0 },
-                usdToCny: usdt.cny / usdt.usd
-            };
-        }
-        return null;
-    } catch (e) {
-        return null;
-    }
-}
-
-function parseFrankfurterData(data) {
-    try {
-        if (data.rates && data.rates.CNY) {
-            return {
-                usdt: { usd: 1.0, cny: data.rates.CNY },
-                trx: { usd: 0, cny: 0 },
-                usdToCny: data.rates.CNY
-            };
-        }
-        return null;
-    } catch (e) {
-        return null;
-    }
-}
-
-async function getLatestExchangeRate() {
-    try {
-        showLoadingSpinner('usdt-price');
-        showLoadingSpinner('trx-price');
-        hideError('price-error');
-        
-        let lastError = null;
-        
-        for (const api of EXCHANGE_APIS) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
-                
-                const response = await fetch(api.url, {
-                    signal: controller.signal,
-                    headers: { 'Accept': 'application/json' }
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) continue;
-                
-                const data = await response.json();
-                const result = api.parser(data);
-                
-                if (result && result.usdToCny > 0 && result.usdToCny < 100) {
-                    exchangeRateData = { ...exchangeRateData, ...result, lastUpdate: new Date() };
-                    updatePriceDisplay();
-                    console.log(`汇率获取成功 (${api.name})`);
-                    return true;
-                }
-            } catch (error) {
-                lastError = error;
-                console.warn(`API ${api.name} 请求失败:`, error.message);
-                continue;
-            }
-        }
-        
-        throw lastError || new Error('所有API均不可用');
-    } catch (error) {
-        console.error('获取汇率失败:', error);
-        showFallbackRates();
-        return false;
-    }
-}
-
-function showFallbackRates() {
-    const usdtPriceElement = document.getElementById('usdt-price');
-    const trxPriceElement = document.getElementById('trx-price');
-    
-    if (usdtPriceElement) {
-        usdtPriceElement.innerHTML = `
-            USD: <span class="value">$1.0000</span><br>
-            CNY: <span class="value">¥7.2932</span><br>
-            <span class="fallback-note">使用预估汇率</span>
-        `;
-    }
-    
-    if (trxPriceElement) {
-        trxPriceElement.innerHTML = `
-            USD: <span class="value">$0.2431</span><br>
-            CNY: <span class="value">¥1.7725</span><br>
-            <span class="fallback-note">使用预估汇率</span>
-        `;
-    }
-    
-    showErrorById('price-error', '实时汇率获取中，请稍后重试...');
-    setTimeout(() => {
-        getLatestExchangeRate();
-    }, 30000);
-}
-
-function hideError(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.style.display = 'none';
-    }
-}
-
-function showLoadingSpinner(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.innerHTML = '<div class="loading-spinner"></div>';
-    }
-}
-
-function hideLoadingSpinner(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.innerHTML = '';
-    }
-}
-
-function updatePriceDisplay() {
-    const usdtPriceElement = document.getElementById('usdt-price');
-    if (usdtPriceElement) {
-        usdtPriceElement.innerHTML = `
-            USD: <span class="value">$${exchangeRateData.usdt.usd.toFixed(6)}</span><br>
-            CNY: <span class="value">¥${exchangeRateData.usdt.cny.toFixed(6)}</span>
-        `;
-    }
-    
-    const trxPriceElement = document.getElementById('trx-price');
-    if (trxPriceElement) {
-        trxPriceElement.innerHTML = `
-            USD: <span class="value">$${exchangeRateData.trx.usd.toFixed(6)}</span><br>
-            CNY: <span class="value">¥${exchangeRateData.trx.cny.toFixed(6)}</span>
-        `;
-    }
-}
-
-function formatLargeNumber(number) {
-    if (number >= 100000000) {
-        return (number / 100000000).toFixed(4) + '亿';
-    } else if (number >= 10000) {
-        return (number / 10000).toFixed(0) + 'w';
-    }
-    return number.toString();
-}
-
-async function updateCurrencyResults() {
-    const amountInput = document.getElementById('amount').value;
-    const unit = document.getElementById('unit').value.toUpperCase();
-    const leftResult = document.getElementById('left-result');
-    const rightResult = document.getElementById('right-result');
-    
-    if (!amountInput) {
-        leftResult.innerHTML = '';
-        rightResult.innerHTML = '';
-        hideError('international-error');
-        return;
-    }
-
-    const amount = parseFloat(amountInput);
-    
-    leftResult.innerHTML = '<div class="loading-spinner" style="margin: 10px auto;"></div>';
-    rightResult.innerHTML = '<div class="loading-spinner" style="margin: 10px auto;"></div>';
-    hideError('international-error');
-    
-    try {
-        const success = await getLatestExchangeRate();
-        
-        if (!success) {
-            throw new Error('获取汇率失败');
-        }
-
-    let leftUsdAmount = amount;
-    let rightUsdAmount = amount;
-    switch(unit) {
-        case 'K': rightUsdAmount *= 1000; break;
-        case 'M': rightUsdAmount *= 1000000; break;
-        case 'B': rightUsdAmount *= 1000000000; break;
-    }
-
-    const leftCnyAmount = leftUsdAmount * exchangeRateData.usdToCny;
-    const rightCnyAmount = rightUsdAmount * exchangeRateData.usdToCny;
-
-    const leftUsdFormatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2
-    }).format(leftUsdAmount);
-
-    const leftCnyFormatted = new Intl.NumberFormat('zh-CN', {
-        style: 'currency',
-        currency: 'CNY',
-        minimumFractionDigits: 2
-    }).format(leftCnyAmount);
-
-    const rightUsdFormatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2
-    }).format(rightUsdAmount);
-
-    const rightCnyFormatted = new Intl.NumberFormat('zh-CN', {
-        style: 'currency',
-        currency: 'CNY',
-        minimumFractionDigits: 2
-    }).format(rightCnyAmount);
-
-    leftResult.innerHTML = `
-        <div>${amount} = <span class="value">${leftUsdFormatted}</span></div>
-        <div>${leftUsdFormatted} = <span class="value">${leftCnyFormatted}</span></div>
-        <div>USD: <span class="value">${leftUsdAmount.toFixed(2)}</span></div>
-        <div>CNY: <span class="value">${leftCnyAmount.toFixed(4)}</span></div>
-        <div class="exchange-rate">当前汇率: 1 USD = ${exchangeRateData.usdToCny.toFixed(6)} CNY</div>
-    `;
-
-    rightResult.innerHTML = `
-        <div>${amount}${unit} = <span class="value">${rightUsdFormatted}</span></div>
-        <div>${rightUsdFormatted} = <span class="value">${rightCnyFormatted}</span></div>
-        <div>USD: <span class="value">${formatLargeNumber(rightUsdAmount)}</span></div>
-        <div>CNY: <span class="value">${formatLargeNumber(rightCnyAmount)}</span></div>
-        <div class="exchange-rate">当前汇率: 1 USD = ${exchangeRateData.usdToCny.toFixed(6)} CNY</div>
-    `;
-    } catch (error) {
-        console.error('国际金额转换失败:', error);
-        showErrorById('international-error', `国际金额转换失败: ${error.message}`);
-        leftResult.innerHTML = '';
-        rightResult.innerHTML = '';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    getLatestExchangeRate();
-    
-    document.getElementById('amount').addEventListener('input', async () => {
-        await updateCurrencyResults();
-    });
-    document.getElementById('unit').addEventListener('change', async () => {
-        await updateCurrencyResults();
-    });
-    
+// ==================== Initialization ====================
+document.addEventListener('DOMContentLoaded', () => {
+    initTabs();
+    initFuel();
+    initCurrency();
     initTextProcessor();
+    initQrcode();
+    initShare();
 });
 
-function initTextProcessor() {
-    const processBtn = document.getElementById('process-btn');
-    const copyBtn = document.getElementById('copy-btn');
-    const copyOutputBtn = document.getElementById('copy-output-btn');
-    const clearInputBtn = document.getElementById('clear-input-btn');
-    const suffixCheckbox = document.getElementById('suffix-enabled');
-    const suffixInputGroup = document.getElementById('suffix-input-group');
-    const inputText = document.getElementById('input-text');
-    const sourceFormat = document.getElementById('source-format');
-    
-    if (processBtn) {
-        processBtn.addEventListener('click', processText);
-    }
-    
-    if (copyBtn) {
-        copyBtn.addEventListener('click', copyResult);
-    }
-    
-    if (copyOutputBtn) {
-        copyOutputBtn.addEventListener('click', copyResult);
-    }
-    
-    if (clearInputBtn) {
-        clearInputBtn.addEventListener('click', clearInput);
-    }
-    
-    if (suffixCheckbox && suffixInputGroup) {
-        suffixCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                suffixInputGroup.style.opacity = '1';
-                suffixInputGroup.style.pointerEvents = 'auto';
-            } else {
-                suffixInputGroup.style.opacity = '0.5';
-                suffixInputGroup.style.pointerEvents = 'none';
-            }
+// ==================== Tab System ====================
+function initTabs() {
+    dom.tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+
+            // Switch Active Tab
+            dom.tabs.forEach(t => t.classList.toggle('active', t === tab));
+
+            // Switch Content
+            dom.contents.forEach(c => {
+                c.style.display = c.id === `${target}Tab` ? 'block' : 'none';
+            });
         });
-    }
-    
-    if (inputText) {
-        inputText.addEventListener('input', () => {
-            autoDetectSeparator();
-            updateLineCount();
-        });
-    }
-}
-
-function updateLineCount() {
-    const inputText = document.getElementById('input-text');
-    const lineCount = document.getElementById('input-line-count');
-    
-    if (inputText && lineCount) {
-        const lines = inputText.value.split('\n').filter(line => line.trim()).length;
-        lineCount.textContent = `${lines} 行`;
-    }
-}
-
-function clearInput() {
-    const inputText = document.getElementById('input-text');
-    const outputText = document.getElementById('output-text');
-    const outputBadge = document.getElementById('output-badge');
-    const outputHint = document.getElementById('output-hint');
-    
-    if (inputText) {
-        inputText.value = '';
-    }
-    
-    if (outputText) {
-        outputText.value = '';
-    }
-    
-    if (outputBadge) {
-        outputBadge.textContent = '0 行';
-    }
-    
-    if (outputHint) {
-        outputHint.textContent = '等待处理...';
-    }
-    
-    updateLineCount();
-}
-
-function autoDetectSeparator() {
-    const inputText = document.getElementById('input-text');
-    const sourceFormat = document.getElementById('source-format');
-    const targetFormat = document.getElementById('target-format');
-    const text = inputText.value.trim();
-    
-    if (!text) {
-        return;
-    }
-    
-    const firstLine = text.split('\n')[0];
-    const parts = firstLine.split('----');
-    
-    if (parts.length >= 2) {
-        let format = '';
-        for (let i = 0; i < parts.length; i++) {
-            if (i > 0) {
-                format += '----';
-            }
-            format += `{${i + 1}}`;
-        }
-        sourceFormat.value = format;
-        targetFormat.value = '{1}----{2}';
-    }
-}
-
-function processText() {
-    const sourceFormat = document.getElementById('source-format').value;
-    const targetFormat = document.getElementById('target-format').value;
-    const inputText = document.getElementById('input-text').value;
-    const suffixEnabled = document.getElementById('suffix-enabled').checked;
-    const suffixNumber = parseInt(document.getElementById('suffix-number').value) || 20;
-    const outputText = document.getElementById('output-text');
-    const outputBadge = document.getElementById('output-badge');
-    const outputHint = document.getElementById('output-hint');
-    
-    if (!inputText.trim()) {
-        alert('请输入要处理的文本');
-        return;
-    }
-    
-    const lines = inputText.split('\n').filter(line => line.trim());
-    const results = [];
-    
-    lines.forEach(line => {
-        const processed = transformLine(line, sourceFormat, targetFormat);
-        if (processed) {
-            if (suffixEnabled) {
-                results.push(`${processed}----${suffixNumber}`);
-            } else {
-                results.push(processed);
-            }
-        }
     });
-    
-    outputText.value = results.join('\n');
-    
-    if (outputBadge) {
-        outputBadge.textContent = `${results.length} 行`;
-    }
-    
-    if (outputHint) {
-        if (results.length > 0) {
-            outputHint.textContent = `成功处理 ${results.length} 条数据`;
+}
+
+// ==================== Fuel Module ====================
+function initFuel() {
+    dom.fuel.btn.addEventListener('click', handleFuelSearch);
+    dom.fuel.input.addEventListener('keypress', (e) => e.key === 'Enter' && handleFuelSearch());
+
+    dom.fuel.quickBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dom.fuel.input.value = btn.dataset.region;
+            handleFuelSearch();
+        });
+    });
+
+    dom.fuel.input.addEventListener('input', () => {
+        dom.fuel.resultSection.style.display = 'none';
+    });
+}
+
+async function handleFuelSearch() {
+    const region = dom.fuel.input.value.trim();
+    if (!region) return showToast('info', '请输入地区名称');
+
+    toggleFuelLoading(true);
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
+
+        const url = `${CONFIG.API.FUEL}?region=${encodeURIComponent(region)}&encoding=json`;
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error('网络请求失败');
+
+        const data = await res.json();
+        if (data.code === 200 && data.data) {
+            renderFuelData(data.data);
         } else {
-            outputHint.textContent = '未生成结果';
+            throw new Error('未找到该地区信息');
         }
+    } catch (err) {
+        console.error('Fuel API Error:', err);
+        showFuelError(err.name === 'AbortError' ? '请求超时，请重试' : err.message);
     }
 }
 
-function transformLine(line, sourceFormat, targetFormat) {
-    const sourceParts = extractParts(line, sourceFormat);
-    if (!sourceParts) return null;
-    
-    return replacePlaceholders(targetFormat, sourceParts);
+function toggleFuelLoading(isLoading) {
+    dom.fuel.resultSection.style.display = 'block';
+    dom.fuel.loading.style.display = isLoading ? 'block' : 'none';
+    dom.fuel.content.style.display = isLoading ? 'none' : 'block';
+    dom.fuel.error.style.display = 'none';
 }
 
-function parseFormat(format) {
-    const placeholders = {};
-    const parts = format.split('----');
-    parts.forEach((part, index) => {
-        const match = part.match(/\{(\d+)\}/);
-        if (match) {
-            placeholders[match[1]] = index;
-        }
+function renderFuelData(data) {
+    toggleFuelLoading(false);
+
+    dom.fuel.regionName.textContent = data.region;
+    dom.fuel.updateTime.textContent = `更新时间: ${data.updated || new Date().toLocaleDateString()}`;
+
+    // Reset prices
+    Object.values(dom.fuel.prices).forEach(el => el.textContent = '--');
+
+    data.items.forEach(item => {
+        if (item.name.includes('92')) dom.fuel.prices.p92.textContent = item.price;
+        if (item.name.includes('95')) dom.fuel.prices.p95.textContent = item.price;
+        if (item.name.includes('98')) dom.fuel.prices.p98.textContent = item.price;
+        if (item.name.includes('0')) dom.fuel.prices.p0.textContent = item.price;
     });
-    return placeholders;
 }
 
-function extractParts(line, format) {
-    const sourcePlaceholders = parseFormat(format);
-    const parts = line.split('----');
-    const values = {};
-    
-    Object.entries(sourcePlaceholders).forEach(([key, index]) => {
-        if (parts[index]) {
-            values[key] = parts[index].trim();
+function showFuelError(msg) {
+    dom.fuel.loading.style.display = 'none';
+    dom.fuel.content.style.display = 'none';
+    dom.fuel.error.style.display = 'block';
+    document.getElementById('errorText').textContent = msg;
+}
+
+// ==================== Currency Module ====================
+function initCurrency() {
+    updateExchangeRates();
+
+    dom.currency.amount.addEventListener('input', calculateConversion);
+    dom.currency.unit.addEventListener('change', calculateConversion);
+
+    // Auto refresh every 5 minutes
+    setInterval(updateExchangeRates, 300000);
+}
+
+async function updateExchangeRates() {
+    const parsers = {
+        binance: (d) => {
+            const price = parseFloat(d.price);
+            return price ? { usdt: { usd: 1, cny: price }, usdToCny: price } : null;
+        },
+        coingecko: (d) => {
+            if (!d.tether?.usd || !d.tether?.cny) return null;
+            return {
+                usdt: { usd: d.tether.usd, cny: d.tether.cny },
+                trx: { usd: d.tron?.usd || 0, cny: d.tron?.cny || 0 },
+                usdToCny: d.tether.cny / d.tether.usd
+            };
+        },
+        frankfurter: (d) => {
+            return d.rates?.CNY ? { usdt: { usd: 1, cny: d.rates.CNY }, usdToCny: d.rates.CNY } : null;
         }
-    });
-    
-    return values;
+    };
+
+    let success = false;
+
+    // Try APIs sequentially
+    for (const api of CONFIG.API.EXCHANGE) {
+        try {
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
+
+            const res = await fetch(api.url, { signal: controller.signal });
+            if (!res.ok) continue;
+
+            const data = await res.json();
+            const result = parsers[api.parser](data);
+
+            if (result && result.usdToCny > 0) {
+                state.exchangeRates = { ...state.exchangeRates, ...result, lastUpdate: new Date() };
+                success = true;
+                break;
+            }
+        } catch (e) {
+            console.warn(`API ${api.name} failed:`, e);
+        }
+    }
+
+    renderExchangeRates();
+    if (!success) showToast('error', '汇率更新失败，使用预估值');
 }
 
-function replacePlaceholders(format, parts) {
-    return format.split('----').map(part => {
-        const match = part.match(/\{(\d+)\}/);
-        return match ? parts[match[1]] || '' : part;
-    }).join('----');
+function renderExchangeRates() {
+    const { usdt, trx } = state.exchangeRates;
+
+    const renderPrice = (usd, cny) => `
+        <div class="price-row">USD: <span class="value">$${usd.toFixed(4)}</span></div>
+        <div class="price-row">CNY: <span class="value">¥${cny.toFixed(4)}</span></div>
+    `;
+
+    if (dom.currency.usdt) dom.currency.usdt.innerHTML = renderPrice(usdt.usd, usdt.cny);
+    if (dom.currency.trx) dom.currency.trx.innerHTML = renderPrice(trx.usd, trx.cny);
+
+    calculateConversion();
 }
 
-function copyResult() {
-    const outputText = document.getElementById('output-text');
-    if (!outputText.value.trim()) {
-        alert('没有可复制的内容');
+function calculateConversion() {
+    const amount = parseFloat(dom.currency.amount.value);
+    if (isNaN(amount)) {
+        dom.currency.leftResult.innerHTML = '';
+        dom.currency.rightResult.innerHTML = '';
         return;
     }
-    
-    outputText.select();
-    document.execCommand('copy');
-    
-    const copyBtn = document.getElementById('copy-btn');
-    const originalText = copyBtn.innerHTML;
-    copyBtn.innerHTML = '<span class="btn-icon">✓</span> 已复制';
-    setTimeout(() => {
-        copyBtn.innerHTML = originalText;
-    }, 2000);
+
+    const unit = dom.currency.unit.value;
+    const rate = state.exchangeRates.usdToCny;
+
+    let multiplier = 1;
+    if (unit === 'k') multiplier = 1e3;
+    if (unit === 'm') multiplier = 1e6;
+    if (unit === 'b') multiplier = 1e9;
+
+    const valSm = amount;
+    const valLg = amount * multiplier;
+
+    const fmt = (n, c) => new Intl.NumberFormat('en-US', { style: 'currency', currency: c }).format(n);
+
+    dom.currency.leftResult.innerHTML = `
+        <div>${amount} = <span class="value">${fmt(valSm, 'USD')}</span></div>
+        <div>≈ <span class="value">${fmt(valSm * rate, 'CNY')}</span></div>
+    `;
+
+    dom.currency.rightResult.innerHTML = `
+        <div>${amount}${unit.toUpperCase()} = <span class="value">${fmt(valLg, 'USD')}</span></div>
+        <div>≈ <span class="value">${fmt(valLg * rate, 'CNY')}</span></div>
+        <div class="exchange-rate">Rate: ${rate.toFixed(4)}</div>
+    `;
 }
 
-const ShareUtils = {
-    siteUrl: window.location.href,
-    siteTitle: '聚合工具箱 - 实用工具集合',
-    siteDescription: '油价查询 · 汇率转换 · 文本处理',
+// ==================== Text Processor ====================
+function initTextProcessor() {
+    if (!dom.text.processBtn) return;
 
-    showToast(icon, message, duration = 2000) {
-        const toast = document.getElementById('shareToast');
-        const toastIcon = toast.querySelector('.toast-icon');
-        const toastText = toast.querySelector('.toast-text');
+    dom.text.processBtn.addEventListener('click', () => {
+        const text = dom.text.input.value.trim();
+        if (!text) return showToast('info', '请输入文本');
 
-        toastIcon.textContent = icon;
-        toastText.textContent = message;
-        toast.classList.add('show');
+        const srcFmt = dom.text.sourceFormat.value;
+        const tgtFmt = dom.text.targetFormat.value;
+        const addSuffix = dom.text.suffixCheck.checked;
+        const suffixVal = dom.text.suffixNum.value;
 
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, duration);
-    },
+        const lines = text.split('\n').filter(l => l.trim());
+        const results = lines.map(line => {
+            const parts = line.split('----');
+            let processed = tgtFmt;
 
-    async copyShareUrl() {
-        const shareText = `🔗 ${this.siteTitle}\n${this.siteDescription}\n\n${this.siteUrl}`;
+            processed = processed.replace(/\{(\d+)\}/g, (match, p1) => {
+                const idx = parseInt(p1) - 1;
+                return parts[idx] ? parts[idx].trim() : match;
+            });
 
-        try {
-            await navigator.clipboard.writeText(this.siteUrl);
-            this.showToast('✅', '网址已复制到剪贴板');
-        } catch (err) {
-            try {
-                const textarea = document.createElement('textarea');
-                textarea.value = this.siteUrl;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                this.showToast('✅', '网址已复制到剪贴板');
-            } catch (e) {
-                this.showToast('❌', '复制失败，请手动复制');
-            }
-        }
-    },
-
-    async generateShareImage() {
-        const activeTab = document.querySelector('.nav-tab.active').getAttribute('data-tab');
-        let title = '聚合工具箱';
-        let content = [];
-
-        switch (activeTab) {
-            case 'fuel':
-                const regionName = document.getElementById('regionName');
-                if (regionName && document.getElementById('resultContent').style.display !== 'none') {
-                    title = `${regionName.textContent} 油价查询结果`;
-                    const prices = [
-                        { label: '92号汽油', value: document.getElementById('price92').textContent },
-                        { label: '95号汽油', value: document.getElementById('price95').textContent },
-                        { label: '98号汽油', value: document.getElementById('price98').textContent },
-                        { label: '0号柴油', value: document.getElementById('price0').textContent }
-                    ];
-                    content = prices.filter(p => p.value !== '--');
-                } else {
-                    content = [{ label: '状态', value: '点击查询获取最新油价' }];
-                }
-                break;
-            case 'currency':
-                const usdtPrice = document.getElementById('usdt-price');
-                const trxPrice = document.getElementById('trx-price');
-                if (usdtPrice) {
-                    const usdtText = usdtPrice.textContent.replace(/\s+/g, ' ').trim();
-                    const trxText = trxPrice ? trxPrice.textContent.replace(/\s+/g, ' ').trim() : '';
-                    content.push({ label: 'USDT', value: usdtText });
-                    content.push({ label: 'TRX', value: trxText });
-                }
-                break;
-            case 'text':
-                const outputText = document.getElementById('output-text');
-                if (outputText && outputText.value.trim()) {
-                    const lines = outputText.value.split('\n').filter(l => l.trim());
-                    content = lines.slice(0, 5).map((line, i) => ({
-                        label: `结果 ${i + 1}`,
-                        value: line.length > 30 ? line.substring(0, 30) + '...' : line
-                    }));
-                    if (lines.length > 5) {
-                        content.push({ label: '...', value: `还有 ${lines.length - 5} 条结果` });
-                    }
-                } else {
-                    content = [{ label: '状态', value: '处理文本后生成分享' }];
-                }
-                break;
-        }
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        const width = 600;
-        const padding = 40;
-        const lineHeight = 50;
-        const titleHeight = 80;
-        const footerHeight = 60;
-
-        const contentHeight = content.length * lineHeight + 20;
-        canvas.height = titleHeight + contentHeight + footerHeight + padding * 2;
-
-        const gradient = ctx.createLinearGradient(0, 0, width, canvas.height);
-        gradient.addColorStop(0, '#1a1a3e');
-        gradient.addColorStop(1, '#0d0d2b');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, canvas.height);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 32px "Microsoft YaHei", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(title, width / 2, padding + 40);
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '14px "Microsoft YaHei", sans-serif';
-        ctx.fillText(`聚合工具箱 | ${new Date().toLocaleDateString('zh-CN')}`, width / 2, padding + 65);
-
-        ctx.strokeStyle = 'rgba(96, 165, 250, 0.3)';
-        ctx.beginPath();
-        ctx.moveTo(padding, padding + 85);
-        ctx.lineTo(width - padding, padding + 85);
-        ctx.stroke();
-
-        ctx.textAlign = 'left';
-        content.forEach((item, index) => {
-            const y = padding + titleHeight + 25 + index * lineHeight;
-
-            ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
-            ctx.fillRect(padding, y - 25, width - padding * 2, lineHeight - 5);
-
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '14px "Microsoft YaHei", sans-serif';
-            ctx.fillText(item.label, padding + 15, y);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 16px "Microsoft YaHei", sans-serif';
-            ctx.fillText(item.value, padding + 100, y);
+            return addSuffix ? `${processed}----${suffixVal}` : processed;
         });
 
-        ctx.fillStyle = '#64748b';
-        ctx.font = '12px "Microsoft YaHei", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('🔗 wuyingzhishang.github.io', width / 2, canvas.height - 20);
+        dom.text.output.value = results.join('\n');
+        dom.text.badge.textContent = `${results.length} 行`;
+        showToast('success', `处理完成: ${results.length} 行`);
+    });
 
-        return canvas.toDataURL('image/png');
-    },
+    dom.text.copyOutput.addEventListener('click', () => {
+        if (!dom.text.output.value) return;
+        navigator.clipboard.writeText(dom.text.output.value);
+        showToast('success', '已复制');
+    });
 
-    async openShareImageModal() {
-        try {
-            const imageData = await this.generateShareImage();
-            const preview = document.getElementById('shareImagePreview');
-            preview.src = imageData;
+    dom.text.clearBtn.addEventListener('click', () => {
+        dom.text.input.value = '';
+        dom.text.output.value = '';
+    });
 
-            const modal = document.getElementById('shareImageModal');
-            modal.style.display = 'flex';
-        } catch (error) {
-            console.error('生成分享图失败:', error);
-            this.showToast('❌', '生成分享图失败');
-        }
-    },
-
-    async copyShareImage() {
-        const preview = document.getElementById('shareImagePreview');
-        try {
-            const response = await fetch(preview.src);
-            const blob = await response.blob();
-            await navigator.clipboard.write([
-                new ClipboardItem({ 'image/png': blob })
-            ]);
-            this.showToast('✅', '图片已复制到剪贴板');
-        } catch (error) {
-            this.showToast('❌', '复制图片失败，请尝试下载');
-        }
-    },
-
-    downloadShareImage() {
-        const preview = document.getElementById('shareImagePreview');
-        const link = document.createElement('a');
-        link.download = `分享图-${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = preview.src;
-        link.click();
-        this.showToast('✅', '图片已开始下载');
-    }
-};
-
-function closeShareImageModal() {
-    const modal = document.getElementById('shareImageModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const shareSiteBtn = document.getElementById('shareSiteBtn');
-    const shareBtn = document.getElementById('shareBtn');
-    const copyShareImageBtn = document.getElementById('copyShareImageBtn');
-    const downloadShareImageBtn = document.getElementById('downloadShareImageBtn');
-    const addToHomeBtn = document.getElementById('addToHomeBtn');
-
-    if (shareSiteBtn) {
-        shareSiteBtn.addEventListener('click', () => ShareUtils.copyShareUrl());
-    }
-
-    if (shareBtn) {
-        shareBtn.addEventListener('click', () => ShareUtils.openShareImageModal());
-    }
-
-    if (copyShareImageBtn) {
-        copyShareImageBtn.addEventListener('click', () => ShareUtils.copyShareImage());
-    }
-
-    if (downloadShareImageBtn) {
-        downloadShareImageBtn.addEventListener('click', () => ShareUtils.downloadShareImage());
-    }
-
-    if (addToHomeBtn) {
-        addToHomeBtn.addEventListener('click', async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: ShareUtils.siteTitle,
-                        text: ShareUtils.siteDescription,
-                        url: ShareUtils.siteUrl
-                    });
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        ShareUtils.showToast('💡', '请使用浏览器分享功能');
-                    }
-                }
-            } else {
-                ShareUtils.showToast('💡', '浏览器不支持分享 API');
-            }
-        });
-    }
-
-    const modal = document.getElementById('shareImageModal');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeShareImageModal();
-            }
-        });
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeShareImageModal();
+    // Auto-detect format
+    dom.text.input.addEventListener('input', () => {
+        const firstLine = dom.text.input.value.split('\n')[0];
+        if (firstLine && firstLine.includes('----')) {
+            const parts = firstLine.split('----');
+            dom.text.sourceFormat.value = parts.map((_, i) => `{${i + 1}}`).join('----');
         }
     });
-});
+}
+
+// ==================== QR Code Module ====================
+function initQrcode() {
+    const els = {
+        input: document.getElementById('qrcodeInput'),
+        btn: document.getElementById('generateQrcodeBtn'),
+        sizeSelect: document.getElementById('qrcodeSizeSelect'),
+        resultBox: document.getElementById('qrcodeResult'),
+        image: document.getElementById('qrcodeImage'),
+        downloadBtn: document.getElementById('downloadQrcodeBtn')
+    };
+
+    if (!els.input) return;
+
+    els.btn.addEventListener('click', () => {
+        const text = els.input.value.trim();
+
+        if (!text) return showToast('info', '请输入内容');
+
+        const size = els.sizeSelect.value;
+
+        // Build the QR code URL
+        const qrcodeUrl = `${CONFIG.API.QRCODE}?text=${encodeURIComponent(text)}&size=${size}&frame=1&e=M`;
+
+        // Set the image source - no CORS issue since we're just displaying an image
+        els.image.src = qrcodeUrl;
+        els.downloadBtn.href = qrcodeUrl;
+
+        // Show result
+        els.resultBox.style.display = 'block';
+        showToast('success', '二维码已生成');
+    });
+
+    // Handle enter key
+    els.input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') els.btn.click();
+    });
+}
+
+// ==================== Share System ====================
+function initShare() {
+    // Copy URL
+    if (dom.share.btn) {
+        dom.share.btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('success', '链接已复制');
+        });
+    }
+
+    // Canvas Generation
+    document.getElementById('addToHomeBtn').addEventListener('click', openShareModal);
+
+    document.querySelector('.close').addEventListener('click', () => {
+        dom.share.modal.style.display = 'none';
+    });
+
+    dom.share.copyBtn.addEventListener('click', async () => {
+        try {
+            const res = await fetch(dom.share.preview.src);
+            const blob = await res.blob();
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            showToast('success', '图片已复制');
+        } catch (e) {
+            showToast('error', '复制失败');
+        }
+    });
+
+    dom.share.downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'shadow-supreme-tools.png';
+        link.href = dom.share.preview.src;
+        link.click();
+    });
+}
+
+async function openShareModal() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 800;
+    const height = 1000; // Taller for more content
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Gradient Background (Cyberpunk)
+    const grd = ctx.createLinearGradient(0, 0, 0, height);
+    grd.addColorStop(0, CONFIG.THEME.BG_GRADIENT_START);
+    grd.addColorStop(1, CONFIG.THEME.BG_GRADIENT_END);
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw Grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < width; i += 40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke(); }
+    for (let i = 0; i < height; i += 40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke(); }
+
+    // Title
+    ctx.fillStyle = CONFIG.THEME.ACCENT_CYAN;
+    ctx.font = 'bold 60px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = CONFIG.THEME.ACCENT_CYAN;
+    ctx.shadowBlur = 20;
+    ctx.fillText("SHADOW SUPREME", width / 2, 120);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '30px "Inter", sans-serif';
+    ctx.fillText("TOOLBOX", width / 2, 170);
+
+    // Content box
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.fillRect(100, 250, 600, 500);
+    ctx.strokeStyle = CONFIG.THEME.ACCENT_PURPLE;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(100, 250, 600, 500);
+
+    // Info inside
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '24px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+
+    const activeTab = document.querySelector('.nav-tab.active');
+    const mode = activeTab ? activeTab.innerText.trim() : 'Tools';
+
+    ctx.fillText(`MODE: ${mode}`, 140, 300);
+    ctx.fillText(`DATE: ${new Date().toLocaleDateString()}`, 140, 340);
+
+    // Get some context data
+    ctx.font = '36px "Space Grotesk", sans-serif';
+    ctx.fillStyle = CONFIG.THEME.ACCENT_CYAN;
+
+    // Dynamic Content based on active tab
+    if (mode.includes('油价')) {
+        const region = document.getElementById('regionName').textContent;
+        const p92 = document.getElementById('price92').textContent;
+        ctx.fillText(`${region} 92#: ${p92}`, 140, 450);
+    } else if (mode.includes('汇率')) {
+        const rate = state.exchangeRates.usdToCny.toFixed(4);
+        ctx.fillText(`USD/CNY: ${rate}`, 140, 450);
+    } else {
+        ctx.fillText("DATA PROCESSED", 140, 450);
+    }
+
+    // Footer
+    ctx.textAlign = 'center';
+    ctx.font = '20px "Inter", sans-serif';
+    ctx.fillStyle = '#8899AC';
+    ctx.fillText("wuyingzhishang.github.io", width / 2, 900);
+
+    dom.share.preview.src = canvas.toDataURL('image/png');
+    dom.share.modal.style.display = 'flex';
+}
+
+// ==================== Utilities ====================
+function showToast(type, msg) {
+    const toast = document.getElementById('shareToast');
+    const toastIcon = toast.querySelector('.toast-icon');
+    const toastText = toast.querySelector('.toast-text');
+
+    toast.className = `toast ${type} show`;
+    toastIcon.textContent = type === 'success' ? '✓' : (type === 'error' ? '!' : 'i');
+    toastText.textContent = msg;
+
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
