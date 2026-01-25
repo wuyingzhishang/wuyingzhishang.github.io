@@ -22,22 +22,6 @@
 - 多API数据源保障，确保数据可靠性
 - 自动轮询更新机制
 
-### 🌐 代理 IP
-- 获取高质量免费代理 IP 地址
-- 支持多协议：HTTP、HTTPS、SOCKS4、SOCKS5
-- 按国家/地区筛选代理
-- 批量提取（1-50个）
-- 一键复制全部代理
-
-### 🔍 IP 查询
-- 查看当前 IP 地址详细信息
-- **6级质量评估体系**：优秀、良好、中等、较差、差劲、极差
-- IP 类型识别：住宅 IP、广播 IP、机房 IP
-- 欺诈风险评分 (Fraud Score)
-- ASN 运营商信息
-- 响应延迟检测
-- 一键复制检测报告
-- 基于 IPPure API
 
 ### 📝 文本处理
 - 灵活的文本格式转换
@@ -56,8 +40,6 @@
 - **数据来源**:
   - 二维码生成 API (api.lykep.com)
   - 油价查询 API (api.nxvav.cn)
-  - 代理 IP API (proxy.scdn.io)
-  - IP 信息 API (IPPure - my.ippure.com)
   - Binance Exchange API
   - CoinGecko API
   - Frankfurter Central Bank API
@@ -165,15 +147,10 @@ http://localhost:8000
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
-## 版本历史
-
-### v2.2.0 (2026-01-23)
-- 🔍 新增 IP 查询功能（基于 IPPure API）
-- 🌐 新增代理 IP 提取功能
-- 📊 6级 IP 质量评估体系
-- ⚡ 响应延迟检测
-- 📋 一键复制 IP 检测报告
-- 🏠 IP 类型识别（住宅/广播/机房）
+### v2.2.0 (2026-01-25)
+- ⚡ 系统性能优化
+- 🗑️ 移除冗余功能
+- � 代码结构重构与清理
 
 ### v2.1.0 (2026-01-22)
 - 📱 新增二维码生成功能

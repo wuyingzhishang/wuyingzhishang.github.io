@@ -7,8 +7,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="聚合工具箱 - 提供油价查询、汇率转换、街机游戏查询、代理IP提取、文本处理等实用工具，一站式在线工具集合">
-    <meta name="keywords" content="油价查询,汇率转换,街机游戏,代理IP,文本处理,在线工具,实用工具">
+    <meta name="description" content="聚合工具箱 - 提供油价查询、汇率转换、二维码生成、文本处理等实用工具，一站式在线工具集合">
+    <meta name="keywords" content="油价查询,汇率转换,二维码生成,文本处理,在线工具,实用工具">
     <meta name="author" content="wuyingzhishang">
     <meta name="theme-color" content="#0F172A">
     <meta property="og:title" content="聚合工具箱 | 实用工具集合">
@@ -80,7 +80,7 @@
         <header class="app-header">
             <div class="header-content">
                 <h1 class="title">聚合工具箱</h1>
-                <p class="subtitle">油价查询 · 汇率转换 · 代理 IP · 文本处理</p>
+                <p class="subtitle">油价查询 · 汇率转换 · 二维码生成 · 文本处理</p>
             </div>
         </header>
 
@@ -100,14 +100,8 @@
             </button>
 
 
-            <button class="nav-tab" data-tab="proxy" role="tab" aria-selected="false" aria-controls="proxyTab">
-                <span class="tab-icon">🌐</span>
-                <span class="tab-text">代理 IP</span>
-            </button>
-            <button class="nav-tab" data-tab="ipinfo" role="tab" aria-selected="false" aria-controls="ipInfoTab">
-                <span class="tab-icon">🔍</span>
-                <span class="tab-text">IP 查询</span>
-            </button>
+
+
             <button class="nav-tab" data-tab="text" role="tab" aria-selected="false" aria-controls="textTab">
                 <span class="tab-icon">📝</span>
                 <span class="tab-text">文本处理</span>
@@ -318,139 +312,9 @@
 
 
 
-            <!-- 代理IP Tab -->
-            <section class="tab-content" id="proxyTab" role="tabpanel" aria-labelledby="proxy-tab"
-                style="display: none;">
-                <div class="proxy-section">
-                    <div class="glass-card proxy-panel">
-                        <div class="section-header">
-                            <h2 class="section-title">高质量代理 IP</h2>
-                            <p class="section-description">获取多协议支持的免费代理 IP 地址</p>
-                        </div>
 
-                        <div class="proxy-controls">
-                            <div class="control-row">
-                                <div class="input-group">
-                                    <label for="proxyProtocol">代理协议</label>
-                                    <select id="proxyProtocol">
-                                        <option value="http">HTTP</option>
-                                        <option value="https">HTTPS</option>
-                                        <option value="socks4">SOCKS4</option>
-                                        <option value="socks5">SOCKS5</option>
-                                        <option value="all" selected>全部协议</option>
-                                    </select>
-                                </div>
-                                <div class="input-group">
-                                    <label for="proxyCountry">国家/地区</label>
-                                    <select id="proxyCountry">
-                                        <option value="all" selected>全部地区</option>
-                                        <option value="CN">中国</option>
-                                        <option value="US">美国</option>
-                                        <option value="JP">日本</option>
-                                        <option value="KR">韩国</option>
-                                        <option value="SG">新加坡</option>
-                                        <option value="DE">德国</option>
-                                        <option value="GB">英国</option>
-                                        <option value="FR">法国</option>
-                                    </select>
-                                </div>
-                                <div class="input-group">
-                                    <label for="proxyCount">提取数量 (1-50)</label>
-                                    <input type="number" id="proxyCount" value="10" min="1" max="50">
-                                </div>
-                            </div>
-                            <button id="getProxyBtn" class="btn btn-primary btn-large">
-                                <span class="btn-icon">⚡</span>
-                                开始提取
-                            </button>
-                        </div>
 
-                        <div class="proxy-results-container" id="proxyResultsContainer" style="display: none;">
-                            <div class="results-header">
-                                <h3>提取结果 <span id="proxyResultCount" class="badge">0</span></h3>
-                                <button id="copyAllProxyBtn" class="btn btn-sm btn-secondary">
-                                    <span class="btn-icon">📋</span> 复制全部
-                                </button>
-                            </div>
 
-                            <div id="proxyLoading" class="loading" style="display: none;">
-                                <div class="spinner"></div>
-                                <p>正在获取代理 IP...</p>
-                            </div>
-
-                            <div id="proxyList" class="proxy-list">
-                                <!-- Proxy items injected here -->
-                            </div>
-
-                            <div id="proxyError" class="error-message" style="display: none;">
-                                <div class="error-icon">⚠️</div>
-                                <p id="proxyErrorText">提取失败</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- IP信息 Tab -->
-            <section class="tab-content" id="ipinfoTab" role="tabpanel" aria-labelledby="ipinfo-tab"
-                style="display: none;">
-                <div class="ipinfo-section">
-                    <div class="glass-card">
-                        <div class="section-header">
-                            <h2 class="section-title">IP 信息检测</h2>
-                            <p class="section-description">查看您的 IP 地址详细信息及风险评分</p>
-                        </div>
-
-                        <div class="ip-check-controls" style="margin-bottom: 2rem; text-align: center;">
-                            <button id="checkIpBtn" class="btn btn-primary btn-large">
-                                <span class="btn-icon">🔍</span>
-                                检测我的 IP
-                            </button>
-                        </div>
-
-                        <div id="ipInfoLoading" class="loading" style="display: none;">
-                            <div class="spinner"></div>
-                            <p>正在获取 IP 信息...</p>
-                        </div>
-
-                        <div id="ipInfoResult" class="ip-result-container" style="display: none;">
-                            <div class="ip-main-card glass-card"
-                                style="background: rgba(0, 243, 255, 0.05); border-color: var(--neon-cyan); margin-bottom: 1.5rem;">
-                                <div class="ip-address-display" style="text-align: center; padding: 1rem;">
-                                    <span
-                                        style="display: block; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">当前
-                                        IP 地址</span>
-                                    <h3 id="ipDisplay"
-                                        style="font-size: 2.5rem; font-family: 'Space Grotesk', sans-serif; margin: 0; color: #fff;">
-                                        0.0.0.0</h3>
-                                    <div id="ipLocation"
-                                        style="margin-top: 0.5rem; color: var(--neon-cyan); font-weight: 500;">-</div>
-                                </div>
-                            </div>
-
-                            <div class="ip-details-grid"
-                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                                <!-- Details injected via JS -->
-                            </div>
-
-                            <div class="raw-json-container" style="margin-top: 1.5rem;">
-                                <details>
-                                    <summary
-                                        style="cursor: pointer; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                                        查看原始 JSON</summary>
-                                    <pre id="ipRawJson"
-                                        style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; overflow-x: auto; color: #a5b3ce; font-size: 0.85rem;"></pre>
-                                </details>
-                            </div>
-                        </div>
-
-                        <div id="ipInfoError" class="error-message" style="display: none;">
-                            <div class="error-icon">⚠️</div>
-                            <p id="ipInfoErrorText">检测失败</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
             <div class="tab-content" id="textTab" style="display: none;">
                 <div class="text-processor-section">
