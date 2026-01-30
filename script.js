@@ -7,8 +7,10 @@ const CONFIG = {
     API: {
         FUEL: 'https://api.nxvav.cn/api/fuel-price/',
         QRCODE: 'http://api.lykep.com/api/qrcode',
-        EXCHANGE: [
-            { name: 'binance', url: 'https://api.binance.com/api/v3/ticker/price?symbol=USDTUSDT', parser: 'binance' },
+        // 2025汇率API - 首选数据源，每小时更新
+        EXCHANGE_PRIMARY: 'http://api.xinyew.cn/api/huilv',
+        // 备用数据源
+        EXCHANGE_FALLBACK: [
             { name: 'coingecko', url: 'https://api.coingecko.com/api/v3/simple/price?ids=tether,tron&vs_currencies=usd,cny', parser: 'coingecko' },
             { name: 'frankfurter', url: 'https://api.frankfurter.app/latest?from=USD&to=CNY', parser: 'frankfurter' }
         ]
@@ -65,9 +67,11 @@ const dom = {
         usdt: document.getElementById('usdt-price'),
         trx: document.getElementById('trx-price'),
         amount: document.getElementById('amount'),
-        unit: document.getElementById('unit'),
+        unitBtns: document.querySelectorAll('.unit-btn'),
         leftResult: document.getElementById('left-result'),
-        rightResult: document.getElementById('right-result')
+        rightResult: document.getElementById('right-result'),
+        updateTime: document.getElementById('exchangeUpdateTime'),
+        refreshBtn: document.getElementById('refreshExchangeBtn')
     },
     text: {
         processBtn: document.getElementById('process-btn'),
@@ -197,56 +201,124 @@ function showFuelError(msg) {
 }
 
 // ==================== Currency Module ====================
+// 当前选中的单位
+let currentUnit = 'k';
+
 function initCurrency() {
     updateExchangeRates();
 
     dom.currency.amount.addEventListener('input', calculateConversion);
-    dom.currency.unit.addEventListener('change', calculateConversion);
 
-    // Auto refresh every 5 minutes
-    setInterval(updateExchangeRates, 300000);
+    // 单位按钮点击事件
+    dom.currency.unitBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // 移除其他按钮的active状态
+            dom.currency.unitBtns.forEach(b => b.classList.remove('active'));
+            // 添加当前按钮的active状态
+            btn.classList.add('active');
+            // 更新当前单位
+            currentUnit = btn.dataset.unit;
+            // 重新计算
+            calculateConversion();
+        });
+    });
+
+    // 刷新按钮
+    if (dom.currency.refreshBtn) {
+        dom.currency.refreshBtn.addEventListener('click', refreshExchangeRates);
+    }
+
+    // Auto refresh every 60 minutes (与API更新频率一致)
+    setInterval(updateExchangeRates, 3600000);
+}
+
+async function refreshExchangeRates() {
+    const btn = dom.currency.refreshBtn;
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('loading');
+    }
+
+    await updateExchangeRates();
+
+    if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+    }
 }
 
 async function updateExchangeRates() {
-    const parsers = {
-        binance: (d) => {
-            const price = parseFloat(d.price);
-            return price ? { usdt: { usd: 1, cny: price }, usdToCny: price } : null;
-        },
-        coingecko: (d) => {
-            if (!d.tether?.usd || !d.tether?.cny) return null;
-            return {
-                usdt: { usd: d.tether.usd, cny: d.tether.cny },
-                trx: { usd: d.tron?.usd || 0, cny: d.tron?.cny || 0 },
-                usdToCny: d.tether.cny / d.tether.usd
-            };
-        },
-        frankfurter: (d) => {
-            return d.rates?.CNY ? { usdt: { usd: 1, cny: d.rates.CNY }, usdToCny: d.rates.CNY } : null;
-        }
-    };
-
     let success = false;
 
-    // Try APIs sequentially
-    for (const api of CONFIG.API.EXCHANGE) {
-        try {
-            const controller = new AbortController();
-            setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
+    // 首先尝试2025汇率API（首选数据源）- 直接调用
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
 
-            const res = await fetch(api.url, { signal: controller.signal });
-            if (!res.ok) continue;
+        const res = await fetch(CONFIG.API.EXCHANGE_PRIMARY, { signal: controller.signal });
+        clearTimeout(timeoutId);
 
+        if (res.ok) {
             const data = await res.json();
-            const result = parsers[api.parser](data);
 
-            if (result && result.usdToCny > 0) {
-                state.exchangeRates = { ...state.exchangeRates, ...result, lastUpdate: new Date() };
+            // 解析2025汇率API响应
+            if (data.status === 200 && data.data) {
+                const { USDT, TRX } = data.data;
+
+                state.exchangeRates = {
+                    usdt: { usd: USDT.USD || 1, cny: USDT.CNY || 7.28 },
+                    trx: { usd: TRX.USD || 0.25, cny: TRX.CNY || 1.82 },
+                    usdToCny: USDT.CNY / (USDT.USD || 1),
+                    lastUpdate: new Date()
+                };
                 success = true;
-                break;
+                console.log('汇率更新成功 (2025 API)');
             }
-        } catch (e) {
-            console.warn(`API ${api.name} failed:`, e);
+        }
+    } catch (e) {
+        console.warn('Primary exchange API failed:', e);
+    }
+
+    // 如果首选API失败，尝试备用API
+    if (!success) {
+        const fallbackParsers = {
+            coingecko: (d) => {
+                if (!d.tether?.usd || !d.tether?.cny) return null;
+                return {
+                    usdt: { usd: d.tether.usd, cny: d.tether.cny },
+                    trx: { usd: d.tron?.usd || 0, cny: d.tron?.cny || 0 },
+                    usdToCny: d.tether.cny / d.tether.usd
+                };
+            },
+            frankfurter: (d) => {
+                return d.rates?.CNY ? {
+                    usdt: { usd: 1, cny: d.rates.CNY },
+                    trx: { ...state.exchangeRates.trx },
+                    usdToCny: d.rates.CNY
+                } : null;
+            }
+        };
+
+        for (const api of CONFIG.API.EXCHANGE_FALLBACK) {
+            try {
+                const controller = new AbortController();
+                setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
+
+                const res = await fetch(api.url, { signal: controller.signal });
+                if (!res.ok) continue;
+
+                const data = await res.json();
+                const result = fallbackParsers[api.parser](data);
+
+                if (result && result.usdToCny > 0) {
+                    state.exchangeRates = { ...state.exchangeRates, ...result, lastUpdate: new Date() };
+                    success = true;
+                    console.log(`汇率更新成功 (${api.name})`);
+                    break;
+                }
+            } catch (e) {
+                console.warn(`Fallback API ${api.name} failed:`, e);
+            }
         }
     }
 
@@ -255,7 +327,7 @@ async function updateExchangeRates() {
 }
 
 function renderExchangeRates() {
-    const { usdt, trx } = state.exchangeRates;
+    const { usdt, trx, lastUpdate } = state.exchangeRates;
 
     const renderPrice = (usd, cny) => `
         <div class="price-row">USD: <span class="value">$${usd.toFixed(4)}</span></div>
@@ -264,6 +336,15 @@ function renderExchangeRates() {
 
     if (dom.currency.usdt) dom.currency.usdt.innerHTML = renderPrice(usdt.usd, usdt.cny);
     if (dom.currency.trx) dom.currency.trx.innerHTML = renderPrice(trx.usd, trx.cny);
+
+    // 更新时间显示
+    if (dom.currency.updateTime && lastUpdate) {
+        const timeStr = lastUpdate.toLocaleTimeString('zh-CN', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        dom.currency.updateTime.textContent = `最后更新: ${timeStr}`;
+    }
 
     calculateConversion();
 }
@@ -276,7 +357,7 @@ function calculateConversion() {
         return;
     }
 
-    const unit = dom.currency.unit.value;
+    const unit = currentUnit;
     const rate = state.exchangeRates.usdToCny;
 
     let multiplier = 1;
@@ -533,7 +614,6 @@ function escapeHtml(text) {
     div.textContent = String(text);
     return div.innerHTML;
 }
-
 
 
 

@@ -95,12 +95,9 @@
                 <span class="tab-text">油价查询</span>
             </button>
             <button class="nav-tab" data-tab="currency" role="tab" aria-selected="false" aria-controls="currencyTab">
-                <span class="tab-icon">�</span>
+                <span class="tab-icon">💱</span>
                 <span class="tab-text">汇率转换</span>
             </button>
-
-
-
 
             <button class="nav-tab" data-tab="text" role="tab" aria-selected="false" aria-controls="textTab">
                 <span class="tab-icon">📝</span>
@@ -257,7 +254,7 @@
                     <div class="price-section glass-card">
                         <div class="section-header">
                             <h2 class="section-title">实时加密货币价格</h2>
-                            <p class="section-description">USDT 和 TRX 的实时汇率</p>
+                            <p class="section-description">USDT 和 TRX 的实时汇率（每小时更新）</p>
                         </div>
                         <div class="price-cards">
                             <article class="price-card glass-card">
@@ -273,6 +270,13 @@
                                 </div>
                             </article>
                         </div>
+                        <div class="exchange-footer">
+                            <span class="update-info" id="exchangeUpdateTime">更新中...</span>
+                            <button class="refresh-btn" id="refreshExchangeBtn" type="button" title="刷新汇率">
+                                <span class="refresh-icon">🔄</span>
+                                刷新
+                            </button>
+                        </div>
                         <div id="price-error" class="error-message" style="display: none;" role="alert"></div>
                     </div>
 
@@ -284,12 +288,14 @@
                         <div class="input-group">
                             <label for="amount" class="visually-hidden">输入金额</label>
                             <input type="number" id="amount" placeholder="输入金额" aria-label="金额">
-                            <label for="unit" class="visually-hidden">选择单位</label>
-                            <select id="unit" aria-label="单位">
-                                <option value="k" selected>K (千)</option>
-                                <option value="m">M (百万)</option>
-                                <option value="b">B (十亿)</option>
-                            </select>
+                        </div>
+                        <div class="unit-buttons" role="group" aria-label="选择单位">
+                            <button class="unit-btn active" data-unit="k" type="button">K<span
+                                    class="unit-desc">千</span></button>
+                            <button class="unit-btn" data-unit="m" type="button">M<span
+                                    class="unit-desc">百万</span></button>
+                            <button class="unit-btn" data-unit="b" type="button">B<span
+                                    class="unit-desc">十亿</span></button>
                         </div>
                         <div class="results-display">
                             <article class="result-card glass-card">
@@ -309,12 +315,6 @@
                     </div>
                 </div>
             </section>
-
-
-
-
-
-
 
             <div class="tab-content" id="textTab" style="display: none;">
                 <div class="text-processor-section">
